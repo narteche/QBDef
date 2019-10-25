@@ -1,0 +1,29 @@
+name: Chen Formulas of Type 2
+type: circuit
+
+parameters:
+    n : natural, n >= 1
+
+variables:
+    x_{i} for i in [1, n]
+    y_{i} for i in [1, n]
+
+quantifier prefix:
+    (E x_{i} A y_{i}) for i in [1, n]
+
+subformulas: // in this case subcircuits
+
+    mu_{0, 1} = and(-x_{1}, -y_{1})
+    mu_{1, 1} = xor(x_{1}, y_{1})
+    mu_{2, 1} = and(x_{1}, y_{1})
+    
+    (mu_{0, k} = or(and(mu_{0, k-1}, -x_{k}, -y_{k}), and(mu_{1, k-1}, x_{n}, y_{n}), and(mu_{2, k-1}, xor(x_{n}, y_{n})))) for k in [2, n]
+
+    (mu_{1, k} = or(and(mu_{0, k-1}, xor(x_{k}, y_{k})),  and(mu_{1, k-1}, -x_{n}, -y_{n}), and(mu_{2, k-1}, x_{n}, y_{n}))) for k in [2, n]
+
+    (mu_{2, k} = or(and(mu_{0, k-1}, x_{k}, y_{k}), and(mu_{1, k-1}, xor(x_{n}, y_{n})), and(mu_{2, k-1}, -x_{n}, -y_{n}))) for k in [2, n]
+
+    finalMu = -mu_{n mod 3, n}
+
+matrix: // output gate in this case
+    finalMu

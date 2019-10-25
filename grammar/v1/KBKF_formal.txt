@@ -1,0 +1,33 @@
+name: KBKF Formulas
+type: CNF
+
+parameters:
+    t : natural, t >= 1
+
+variables:
+
+    x_{i} for i in [1, t]
+
+    y_{0}
+    y_{i, j} for i in [1, t], j in [0, 1]
+    y_{i} for i in [t+1, t+t]
+    
+quantifier prefix:
+    E y_{0}
+    (((E y_{i, j}) for j in [0, 1]) A x_{i}) for i in [1, t]
+    (E y_{i}) for i in [t+1, t+1]
+
+subformulas: // in this case subcircuits
+
+    Cminus = -y_{0}
+    C_{0} = or(y_{0}, -y_{0, 1}, y_{1, 1})
+
+    (C_{i, j} = or(y_{i, j}, x_{i}, -y_{i+1, 0}, -y_{i+1, 1})) for i in [1, t-1], j in [0, 1]
+
+    (C_{t, j} = or(y_{t, j}, x_{t}, (-y_{k}) for k in [t+1, t+t])) for j in [0, 1]
+
+    (C_{t+i, 0} = or(x_{i}, y_{t+i})) for i in [1, t]
+    (C_{t+i, 1} = or(-x_{i}, y_{t+i})) for i in [1, t]
+
+matrix: // output gate in this case
+    and(Cminus, C_{0}, (C_{i, j}) for i in [1, t+t], j in [0, 1])

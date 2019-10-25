@@ -1,0 +1,63 @@
+name: KBKF
+type: CNF
+
+parameters:
+
+    t : natural, n >= 1
+
+variables:
+
+    x_{i}       where i in [1, t]
+
+    y_{0}
+    y_{i, j}    where i in [1, t], j in [0, 1]
+    y_{i}       where i in [t+1, t+t]
+
+blocks:
+
+    // ==== blocks for quantifers ====
+
+    define blocks X as
+        X_{i} := x_{i}
+    where i in [1, t]
+    
+    define blocks Y as
+        Y_{0} := y_{0}
+        Y_{i} := y_{i, 0}, y_{i, 1}
+        YRest := y_{j}
+    where i in [1, t], j in [t+1, t+t]
+
+    define block
+        Intermediate := Y_{i}, X_{i}
+    where i in [1, t]
+
+    define block
+        Q := Y_{0}, Intermediate, YRest
+
+    // ==== blocks for formula ====
+
+    define blocks C as
+        CMinus := -y_{0}
+        C_{0} := y_{0}, -y_{1, 0}, -y_{1,1}
+        C_{i, j} := y_{i, j}, x_{i}, -y_{i+1, 0}, -y_{i+1, 1}
+        C_{t, j} := y_{t, j}, x_{t}, -y_{k} for k in [t+1, t+t])) for j in [0, 1]
+        C_{t+l, 0} = x_{l}, y_{t+l}
+        C_{t+l, 1} = -x_{l}, y_{t+l}
+    where i in [1, t-1], j [0, 1], k in [t+1 t+t], l in [1, t]
+
+    define block
+        F := all blocks in C
+
+quantifiers:
+
+    blocks X quantified with A
+    blocks Y quantified with E
+    
+quantifier prefix: Q
+
+operators:
+
+    blocks C have operator OR
+    block F has operator AND
+
+output: F

@@ -1,0 +1,21 @@
+name: General Chen Formulas of Type 2
+type: circuit
+
+parameters:
+    n : natural, n >= 1
+    p : natural, p >= 3
+
+variables:
+    x_{i, j} for i in [1, n], j in [0, p-1]
+
+quantifier prefix:
+    (Q x_{i, j}) for i in [1, n], j in [0, p-1],
+                 Q = E if j mod 2 == 0 else A
+
+// in this case subcircuits:
+subformulas:
+
+    // general version circuits are complicated to write, let's do them later
+
+matrix:
+    // operation between subformulas here

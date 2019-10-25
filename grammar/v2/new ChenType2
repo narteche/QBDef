@@ -1,0 +1,74 @@
+name: Chen Type 2
+type: circuit
+
+parameters:
+
+    n : natural, n >= 1
+
+variables:
+
+    x_{i}   where i in [1, n]
+    y_{i}   where i in [1, n]
+
+blocks:
+
+    // === blocks for quantifers ===
+    
+    define blocks X as
+        X_{i} := x_{i}
+    where i in [1, n]
+
+    define blocks Y as
+        Y_{i} := y_{i}
+    where i in [1, n]
+
+    define block
+        XY := X_{i}, Y_{i}
+    where i in [1, n]
+
+    // ===  blocks for circuits  ===
+
+    define blocks Ones0 as
+        Ones_{0, i} := -x_{i}, -y_{i}
+    where i in [1, n]
+
+    define blocks Ones1 as
+        Ones_{1, i} := x_{i}, y_{i}
+    where i in [1, n]
+
+    define blocks Ones2 as
+        Ones_{2, i} := x_{i}, y_{i}
+    where i in [1, n]
+
+    define blocks IsAndAdds as
+        IsAndAdds_{k, p, a} := Mu_{k, p}, Ones_{a, k}
+    where k in [1, n], p, a in [0, 2]
+
+    define blocks Mu as
+        Mu_{0, 1} := Ones_{0, 1}
+        Mu_{1, 1} := Ones_{1, 1}
+        Mu_{2, 1} := Ones_{2, 1}
+        Mu_{m, k} := IsAndAdds_{k-1, p, a}
+    where m in [0, 2], k in [2, n], p in [0, 2], a = (m-p) mod 3
+
+    define block
+        Out := -Mu_{n mod 3, n}
+
+quantifiers:
+
+    blocks X quantified with E
+    blocks Y quantified with A
+    
+quantifier prefix: XY
+
+operators:
+
+    blocks Ones0 have operator AND
+    blocks Ones1 have operator XOR
+    blocks Ones2 have operator AND
+
+    blocks IsAndAdds have operator AND
+
+    blocks Mu have operator OR
+
+output: Out

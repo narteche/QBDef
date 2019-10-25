@@ -1,0 +1,26 @@
+name: Chen Formulas of Type 1
+type: CNF
+
+parameters:
+    n : natural, n >= 1
+
+variables:
+    x_{i, j, k} for i in [0, n], j, k in [0, 1]
+    xPrime_{i, j, k} for i in [1, n], j, k in [0, 1]
+    y_{i} for i in [1, n]
+
+quantifier prefix:
+    (E x_{0, j, k}) for j, k in [0,1]
+    (((E xPrime_{i, j, k}) for j, k in [0, 1]) A y_{i} ((E x_{i, j, k}) for j, k in [0, 1])) for i in [1, n]
+
+subformulas:
+    B1 = and((-x_{0, j, k}) for j, k in [0, 1])
+    B2 = and((or(x_{n, j, 0}, x_{n, j, 1})) for n in [1, n], j in [0, 1]
+
+    (H_{i, j} = and((or(-xPrime_{i, 0, k}, -xPrime_{i, 1, l}, xPrime_{i-1, j, 0}, xPrime_{i-1, j, 1})) for k, l in [0, 1]) for i in [1, n], j in[0, 1]
+
+    (T1_{i} = and((or(-x_{i, 0, k}, y_{i}, xPrime_{i, 0, k})) for k in [0, 1])) for i in [1, n]
+    (T1_{i} = and((or(-x_{1, i, k}, -y_{i}, xPrime_{1, i, k})) for k in [0, 1])) for i in [1, n]
+
+matrix:
+    and(B1, B2, (H_{i, j}) for i in [1, n], j in [0, 1], (T1_{i}) for i in [1, n], (T2_{i}) for i in [1, n])

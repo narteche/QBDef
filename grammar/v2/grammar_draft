@@ -1,0 +1,38 @@
+Formula -> name: Name
+           type: Type
+           parameters: Parameters
+           blocks: Blocks
+           quantifiers: Quantifiers
+           operators: Operators
+           output: Output
+
+Name -> [a-zA-Z0-9 ]
+
+Type -> [a-zA-Z0-9 ]
+
+Var_Name -> [a-zA-Z0-9 ]_{Indices} 
+
+Parameters ->   Var_Name : Data_Type Restrictions Parameters
+              | 
+              | \epsilon
+
+Data_Type -> natural
+
+Restrictions ->   , var_name Op [0-9] Restrictions
+                | \epsilon
+
+Blocks -> define block
+            Var_Name := Block_Body
+
+        | define block
+            Block_Definition
+          where Var_Ranges
+
+        | define blocks Var_Name as
+            Var_Name\indices := 
+
+Block_Definition ->   Var_Name\_{Indices} := Block_Body
+                      Block_Definition
+                    | \epsilon
+
+....
