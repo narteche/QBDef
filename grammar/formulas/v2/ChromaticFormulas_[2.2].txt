@@ -1,0 +1,102 @@
+name: Chromatic Formulas
+type: circuit
+
+parameters:
+
+    n : natural, n >= 1
+    k : natural, k >= 1
+
+variables:
+
+    x(i, j)     where i in [1, n], j in [1, k]
+    y(i, j)     where i in [1, n], j in [1, k-1]
+
+blocks:
+
+    // === blocks for quantifers ===
+    
+    define blocks
+        X(i) := x(i, j)
+    where i in [1, n], j in [1, k]
+    grouped in X
+
+    define blocks
+        Y(i) := -y(i, j)
+    where i in [1, n], j in [1, k-1]
+    grouped in Y
+
+    define block
+        Q := all blocks in X, all blocks in Y
+
+    // ===  blocks for circuits  ===
+
+    define block
+        Gamma1 := all blocks in X
+
+    define block
+        Delta1 := all blocks in Y
+
+    define blocks SubGamma2
+        SG2(i, j, l) := -x(i, j), -x(i, l)
+    where i in [1, n], j in [1, k], l in [1, k] and j != l
+
+    define blocks SubDelta2
+        SD2(i, j, l) := y(i, j), y(i, l)
+    where i in [1, n], j in [1, k-1], l in [1, k-1] and j != l
+
+    define block
+        Gamma2 := all blocks SubGamma2
+
+    define block
+        Delta2 := all blocks SubDelta2
+
+    define blocks SubGamma3
+        SG3(i, j, l) := -x(i, l), -x(j, l)
+    where i in [1, n], j in [1, n] and i != j, l in [1, k]
+
+    define blocks SubDelta3
+        SD3(i, j, l) := y(i, l), y(j, l)
+    where i in [1, n], j in [1, n] and i != j, l in [1, k-1]
+
+    define block
+        Gamma3 := all blocks SubGamma3
+
+    define block
+        Delta3 := all blocks SubDelta3
+
+    define block
+        Gamma := Gamma1, Gamma2, Gamma3
+
+    define block
+        Delta := Delta1, Delta2, Delta3
+
+    define block
+        F := Gamma, Delta
+
+quantifiers:
+
+    blocks in X quantified with E
+    blocks in Y quantified with A
+    
+quantifier prefix: Q
+
+operators:
+
+    blocks in X have operator OR
+    blocks in Y have operator AND
+
+    blocks in SubGamma2 have operator OR
+    blocks in SubDelta2 have operator AND
+
+    blocks in SubGamma3 have operator OR
+    blocks in SubDelta3 have operator AND
+
+    blocks Gamma1, Gamma2, Gamma3 have operator AND
+    block Gamma has operator AND
+
+    blocks Delta1, Delta2, Delta3 have operator OR
+    block Delta has operator OR
+
+    block F has operator AND
+
+output: F
