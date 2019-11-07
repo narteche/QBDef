@@ -7,86 +7,96 @@ parameters:
 
 variables:
 
-    x_{i, j, k}    where i in [0, n], j, k in [0, 1]
-    y_{i, j, j}    where i in [1, n], j, k in [0, 1]
-    z_{i}          where i in [1, n]
+    x(i, j, k)    where i in [0, n], j, k in [0, 1]
+    y(i, j, j)    where i in [1, n], j, k in [0, 1]
+    z(i)          where i in [1, n]
 
 blocks:
 
-    // blocks for quantifers
+    // === blocks for quantifers ===
     
-    define blocks X as
-        X_{i} := x_{i, j, k}
-    where i in [0, n], j, k in [0, 1]    // when we refer to X we refer to all the X_{i} blocks for all the subinds.
+    define blocks
+        X(i) := x(i, j, k)
+    where i in [0, n], j, k in [0, 1]
+    grouped in X                        // when we refer to X we refer to all the X_{i} blocks for all the subinds.
 
-    define blocks Y as
-        Y_{i} := y_{i, j, k}
+    define blocks
+        Y(i) := y(i, j, k)
     where i in [1, n], j, k in [0, 1]
+    grouped in Y
 
-    define blocks Z as
-        Z_{i} := z_{i}
+    define blockS
+        Z(i) := z(i)
+    where i in [1, n]
+    grouped in Z
+
+    define block
+        YZX := Y(i), Z(i), X(i)
     where i in [1, n]
 
     define block
-        YZX := Y_{i}, Z_{i}, X_{i}
-    where i in [1, n]
+        Q := X(0), YZX 
 
-    define block
-        Q := X_{0}, YZX 
+    // === blocks for clauses ===
 
-    // blocks for clauses
-
-    define blocks B1 as
-        B1_{i, j} := -x_{0, i, j}
+    define blocks
+        B1(i, j) := -x(0, i, j)
     where i, j in [0, 1]
+    grouped in B1
 
-    define blocks B2 as
-        B2_{j} := x_{n, j, 0}, x_{n, j, 1}
+    define blocks
+        B2(j) := x(n, j, 0), x(n, j, 1)
     where j in [0, 1]
+    grouped in B2
 
-    define block B as
+    define block
         B := B1, B2
 
-    define blocks H1 as
-        H1_{i, j, k, l} := -y_{i, 0, k}, -y_{i, 1, l}, -x_{i-1, j, 0}, x_{i-1, j, 1}
+    define blocks
+        H1(i, j, k, l) := -y(i, 0, k), -y(i, 1, l), -x(i-1, j, 0), x(i-1, j, 1)
+    where i in [1, n], j, k, l in [0, 1]
+    grouped in H1
+
+    define block
+        H := H1(i, j, k, l)
     where i in [1, n], j, k, l in [0, 1]
 
-    define block H as
-        H := H1
-
-    define blocks T1 as
-        T1_{i, k} := -x_{i, 0, k}, z_{i}, y_{i, 0, k}
+    define blocks
+        T1(i, k) := -x(i, 0, k), z(i), y(i, 0, k)
     where i in [1, n], k in [0, 1]
+    grouped in T1
 
-    define blocks T2 as
-        T2_{i, k} := -x_{1, i, k}, -z_{i}, y_{i, 1, k}
+    define blocks
+        T2(i, k) := -x(1, i, k), -z(i), y(i, 1, k)
     where i in [1, n], k in [0, 1]
+    grouped in T2
 
-    define block T as
+    define block
         T := T1, T2
 
-    define block F as
+    define block
         F := B, H, T
 
 quantifiers:
 
-    blocks X quantified with E
-    blocks Y quantified with E
-    blocks Z quantified with A
+    blocks in X quantified with E
+    blocks in Y quantified with E
+    blocks in Z quantified with A
     
 quantifier prefix: Q
 
 operators:
 
-    blocks B2 have operator OR
-    blocks B have operator AND
+    blocks in B2 have operator OR
+    block B has operator AND
     
-    blocks H1 have operator OR
-    blocks H have operator AND
+    blocks in H1 have operator OR
+    block H has operator AND
 
-    blocks T1 have operator OR
-    blocks T have operator AND
+    blocks in T1 have operator OR
+    blocks in T2 have operator OR
+    block T has operator AND
 
-    blocks F have operator AND
+    block F has operator AND
 
 output: F
