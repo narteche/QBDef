@@ -6,9 +6,6 @@ Created on Thu Nov 14 12:38:01 2019
 @author: alephnoell
 """
 
-#
-# This example shows how to write a basic calculator with variables.
-#
 
 from lark import Lark, Transformer, v_args
 

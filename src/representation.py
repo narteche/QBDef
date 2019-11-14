@@ -91,5 +91,3 @@ class QBF:
         self.operatorBlocks = []
         self.quantifierPrefix = None
         self.formulaOutput = None
-
-        
