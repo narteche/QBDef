@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -16,67 +18,51 @@ except NameError:
     pass
 
 
-
 formula_family_grammar = """
 
-    start: value* formula_family
-    
-    ?value : "value:" NAME "=" EXPRESSION ";" -> handle_value
+    start: expr
 
-    formula_family : name format parameters? variables finish
- 
-    name: "name:" FAMILY_NAME -> set_name
+    formula_family : 
     
-    format: "format:" FORMAT -> set_format
-    
-    parameters: "parameters:" parameter_declaration+ "end"
-    
-    parameter_declaration: NAME ":" PARAM_TYPE ("," EXPRESSION)* ";" -> add_parameter 
+   
+    expr : expr OP expr | PARAM_NAME | INDEX -> add_expression
 
-    variables : "variables:"  "end"
+
+
+    PARAM_NAME : /[a-z]([a-zA-Z0-9])*/
+    INDEX : /[a-z]([a-z])*/ | NUMBER
     
-    finish : -> return_formula
     
-    FAMILY_NAME : /[a-zA-Z]([a-zA-Z0-9])*/
-    NAME : /[a-z]([a-zA-Z0-9])*/
-    FORMAT : "CNF" | "circuit"
-    PARAM_TYPE : "natural"
-    EXPRESSION : /[^,;]+/
+    OP : "==" | "!=" | "<=" | "<" | ">=" | ">" | "+" | "-" | "*" | "/" | "mod"
+    
+
+    
     
     %import common.NUMBER
     %import common.WS_INLINE
-    %import common.NEWLINE
     %ignore WS_INLINE
-    %ignore NEWLINE
-    
 """
+
 
 @v_args(inline=True)    # Affects the signatures of the methods
 class TraverseTree(Transformer):
-    #from operator import lt, le, eq, ne, ge, gt, mod, add, sub, mul, truediv as div, neg
-    #number = int
 
     def __init__(self):
         self.formula = QBF()
 
-    def handle_value(self, name, expr):
-        print("VALUE: Handling parameter {} with value {}".format(name, expr))
-        self.formula.set_value(str(name), str(expr))
-
     def set_name(self, name):
-        print("NAME: setting name {}".format(name))
-        self.formula.set_name(str(name))
+        self.formula.set_name(name)
         
     def set_format(self, f):
-        print("FORMAT: setting format {}".format(f))
-        self.formula.set_format(str(f))
+        self.formula.set_format(f)
         
-    def add_parameter(self, p, t, *c):
-        constr = []
-        for elem in c:
-            constr.append(str(elem))
-        print("PARAMETER: adding parameter {} of type {} with constraints {}".format(p, t, constr))
-        self.formula.add_parameter(str(p), str(t), constr)
+    def add_parameter(self, p, t, c):
+        self.formula.add_parameter(p, t, c)
+        
+    def add_variable(self, name, indices, cons): #something for ranges
+        self.add_variable(self, name, indices, cons)
+        
+    def add_expression(self, expr, OP, ")
         
     def return_formula(self):
         return self.formula
@@ -113,9 +99,6 @@ def main():
             chil = sub.children
             formula = chil[len(chil) - 1]
     print(formula)
-    params = formula.get_parameters()
-    p = params[1]
-    print(p.paramRestrictions)
 
 #def test():
 #    print(calc("a = 1+2"))

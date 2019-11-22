@@ -10,7 +10,7 @@ from enum import Enum
 class Quantifier(Enum):
     EXISTS = 'E'
     FORALL = 'A'
-    
+
 class Operator(Enum):
     OR = 'or'
     AND = 'and'
@@ -19,134 +19,81 @@ class Operator(Enum):
 class Format(Enum):
     circuit = 'circuit'
     CNF = 'CNF'
-
-class Literal:
-    def __init__(self, var):
-        self.var = var
-        self.neg = False
-        
-    def get_var(self):
-        return self.var
     
-    def negate(self):
-        self.neg = True
-        
-    def is_negated(self):
-        return self.neg
-
-class Block:
-    def __init__(self, name):
-        self.name = name
-        self.body = []
+class ParamType(Enum):
+    natural = 'natural'
     
-    def get_body(self):
-        return self.body
-    
-    def set_body(self, newBody):
-        self.body = newBody
-        
-    def add_to_body(self, lit):
-        self.body.append(lit)
-    
-class QuantifierBlock(Block):
-    def __init__(self, name):
-        super().__init__(name)
-        self.quantifier = Quantifier.EXISTS
-    
-    def quantify(self, Q):
-        self.quantifier = Q
-        
-    def is_existential(self):
-        return self.quantifier == Quantifier.EXISTS
-    
-    def is_universal(self):
-        return not self.is_existential(self)
-    
-class OperatorBlock(Block):
-    def __init__(self, name):
-        super().__init__(name)
-        self.operator = Operator.OR
-        
-    def set_operator(self, op):
-        self.operator = op
-        
-    def get_operator(self):
-        return self.operator
-    
-class BlockGroup:
-    def __init__(self, blockGroup):
-        self.group = blockGroup
-    
-    def get_group(self):
-        return self.group
-    
-    def set_group(self, newBlockGroup):
-        self.group = newBlockGroup
-        
-    def add_to_group(self, block):
-        self.group.append(block)
-
 class Parameter:
-    def __init__(self, p, pType, cons):
-        self.param = p
-        self.value = None
-        self.type = pType
-        self.cons = cons
+    
+    def __init__(self, pName = "", pType=ParamType.natural, pValue = None, pRest = []):
+        self.paramName = pName
+        self.paramType = pType
+        self.paramValue = pValue
+        self.paramRestrictions = pRest
         
-        
-    def set_param(self, p):
-        self.param = p
+    def get_name(self):
+        return self.paramName
     
-    def get_param(self):
-        return self.param
-    
-    def set_value(self, v):
-        self.value = v
-    
-    def get_value(self):
-        return self.value
-    
-    def set_type(self, t):
-        self.type = t
-        
-    def get_type(self):
-        return self.type
-    
-    def get_constraints(self):
-        return self.cons
-    
-    def add_contraint(self, c):
-        self.cons.append(c)
-
 class QBF:
     def __init__(self):
         self.name = ""
         self.format = ""
+        self.values = {}
         self.parameters = []
-        self.variables = []
-        self.quantifierBlocks = []
-        self.operatorBlocks = []
-        self.quantifierPrefix = None
-        self.formulaOutput = None
-        
-    def set_name(self, n):
-        self.name = n
         
     def get_name(self):
         return self.name
+    
+    def set_name(self, n):
+        self.name = n
+        
+    def get_format(self):
+        return self.format
     
     def set_format(self, f):
         if f == 'CNF':
             self.format = Format.CNF
         else:
             self.format = Format.circuit
-        
-    def get_format(self):
-        return self.format
+            
+    def get_values(self):
+        return self.values
+    
+    def set_values(self, newValues):
+        self.values = newValues
+    
+    def get_value(self, name):
+        return self.values[name]
+    
+    def set_value(self, name, expression):
+        self.values[name] = eval(expression)
     
     def get_parameters(self):
         return self.parameters
     
-    def add_parameter(self, p, t, c):
-        self.parameters.append(Parameter(p, t, c))
+    def get_parameter(self, pName):
+        params = self.parameters
+        for p in params:
+            if p.get_name() == pName:
+                return p
+            
+    def add_parameter(self, paramName, paramType, cons):
+        value = self.values[paramName]
+        constraints = []
+        for expr in cons:
+            #res = eval(expr.replace(paramName, str(value)))
+            res = self.evaluate(expr) # bring variables into scope
+            constraints.append(res)
+        self.parameters.append(Parameter(paramName, paramType, value, constraints))
         
+    def evaluate(self, expr):
+        variables = [var for var in self.values]
+        assigned_values = [val for val in self.values.values()]
+        pairs = zip(variables, assigned_values)
+        for p in pairs:
+            assignment = "{} = {}".format(p[0], p[1])
+            exec(assignment)
+        return eval(expr)    
+        
+        
+    

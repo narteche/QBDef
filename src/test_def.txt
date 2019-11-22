@@ -1,0 +1,12 @@
+value: n = 10;
+value: m = 15;
+name: Noel 
+format: CNF
+
+parameters:	
+    n : natural, n + 100;
+    m : natural, m > 20, m > 7;
+end
+
+variables:
+end
