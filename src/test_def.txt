@@ -14,3 +14,10 @@ variables:
 	y(i, j, k) where i, j in [1, n], k in [1, m];
 	y(1, 2);
 end
+
+quantifier blocks:
+
+    define block
+        Q := X(0), -YZX;
+
+end

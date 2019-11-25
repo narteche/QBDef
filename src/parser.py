@@ -23,7 +23,7 @@ formula_family_grammar = """
     
     ?value : "value:" NAME "=" EXPRESSION ";" -> handle_value
 
-    formula_family : name format parameters? variables finish
+    formula_family : name format parameters? variables quantifier_blocks finish
  
     ?name: "name:" FAMILY_NAME -> set_name
     
@@ -33,13 +33,24 @@ formula_family_grammar = """
     
     ?parameter_declaration: NAME ":" PARAM_TYPE ("," EXPRESSION)* ";" -> add_parameter 
 
-    variables : "variables:" variable_declaration+ "end"
+    ?variables : "variables:" variable_declaration+ "end"
     
     ?variable_declaration: NAME ("(" indices ")" ("where" index_range ("," index_range)*)?)? ";" -> add_variable
     
     ?indices : INDEX ("," INDEX)*
     
     ?index_range : indices "in" "[" EXPRESSION "," EXPRESSION "]"
+    
+    quantifier_blocks : "quantifier blocks:" block_definition+ "end"
+    
+    block_definition :  "define block" BLOCK_NAME ("(" indices ")")? ":=" block_body ("where" (index_range | assignment)+)? ";"
+                      
+    block_body : brick ("," brick)*
+    
+    brick :   NEGATION? BLOCK_NAME ("(" indices ")")?
+            | NEGATION? NAME ("(" indices ")")?
+                        
+    assignment : INDEX "=" EXPRESSION ";"
     
     finish : -> return_formula
     
@@ -51,6 +62,8 @@ formula_family_grammar = """
     PARAM_TYPE : "natural"
     EXPRESSION : /[^,;\]]+/
     INDEX : /([a-zA-Z0-9])+/
+    BLOCK_NAME : /[A-Z]([a-zA-Z0-9])*/
+    NEGATION : "-"
     
     %import common.NUMBER
     %import common.WS_INLINE
@@ -67,7 +80,7 @@ class TraverseTree(Transformer):
 
     def __init__(self):
         self.formula = QBF()
-                
+    
     def handle_value(self, name, expr):
         print("VALUE: Handling parameter {} with value {}".format(name, expr))
         self.formula.set_value(str(name), str(expr))
@@ -144,14 +157,16 @@ def main():
     f = open("test_def.txt", "r")
     s = f.read()
     parsed_formula = parse(s)
+    print(parsed_formula.pretty())
     formula = None
     for sub in parsed_formula.iter_subtrees():
         if sub.data == "formula_family":
             chil = sub.children
             formula = chil[len(chil) - 1]
+
     #print(formula)
-    varabs = formula.get_variables()
-    print(varabs)
+    #varabs = formula.get_variables()
+    #print(varabs)
 
 
 #def test():
