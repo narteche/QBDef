@@ -34,12 +34,23 @@ class Parameter:
     def get_name(self):
         return self.paramName
     
+class Variable:
+    def __init__(self, pName = "", pType=ParamType.natural, pValue = None, pRest = []):
+        self.paramName = pName
+        self.paramType = pType
+        self.paramValue = pValue
+        self.paramRestrictions = pRest
+    
 class QBF:
     def __init__(self):
+        self.varCounter = 0
+        
         self.name = ""
         self.format = ""
         self.values = {}
         self.parameters = []
+        self.readVariables = []
+        self.variables = {}
         
     def get_name(self):
         return self.name
@@ -86,6 +97,52 @@ class QBF:
             constraints.append(res)
         self.parameters.append(Parameter(paramName, paramType, value, constraints))
         
+    def add_variable(self, varName, varIndices=[], varRanges=[]):
+        print(varIndices)
+        if varIndices and varRanges:
+            self.recursive_nesting(varRanges, 0, 0, varName, [])
+        elif varIndices:
+            varName = varName + "("
+            for inx in varIndices:
+                varName = varName + ' ' + str(inx)
+            varName = varName + ')'
+            self.varCounter = self.varCounter + 1
+            varId = self.varCounter
+            self.variables[varName] = varId
+        else:
+            self.varCounter = self.varCounter + 1
+            varId = self.varCounter
+            self.variables[varName + "( )"] = varId
+            
+    def get_variables(self):
+        return self.variables
+        
+    def recursive_nesting(self, levels, currentLevel, currentIndex, varName, valuedIndices):
+        if currentLevel == len(levels):
+            name = varName + "("
+            for inx in valuedIndices:
+                name = name + ' ' + str(inx)
+            name = name + ' )'
+            self.varCounter = self.varCounter + 1
+            varId = self.varCounter
+            self.variables[name] = varId
+            return
+            
+        level = levels[currentLevel]
+        indices = level[0]
+        if currentIndex == len(indices):
+            self.recursive_nesting(levels, currentLevel + 1, 0, varName, valuedIndices)
+            return
+        
+        limits = level[1]
+        lim1 = self.evaluate(limits[0])
+        lim2 = self.evaluate(limits[1])
+        
+        for index in range(lim1, lim2 + 1):
+            vals = valuedIndices.copy()
+            vals.append(index)
+            self.recursive_nesting(levels, currentLevel, currentIndex + 1, varName, vals)
+            
     def evaluate(self, expr):
         variables = [var for var in self.values]
         assigned_values = [val for val in self.values.values()]

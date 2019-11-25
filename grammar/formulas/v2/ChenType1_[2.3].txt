@@ -1,6 +1,8 @@
 value: n = 5;
 value: a = [1, 2]
 
+
+
 name: Chen Type 1
 type: CNF
 
@@ -10,7 +12,7 @@ parameters:
 
 variables:
 
-    x(i, j, k)    where i in , j, k in [0, 1]
+    x(i, j, k)    where i in [0, n], j, k in [0, 1]
     y(i, j, j)    where i in [1, n], j, k in [0, 1]
     z(i)          where i in [1, n]
 

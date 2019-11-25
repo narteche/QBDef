@@ -3,10 +3,14 @@ value: m = 15;
 name: Noel 
 format: CNF
 
-parameters:	
+parameters:
     n : natural, n + 100;
     m : natural, m > 20, m > 7;
 end
 
+
 variables:
+	x;
+	y(i, j, k) where i, j in [1, n], k in [1, m];
+	y(1, 2);
 end
