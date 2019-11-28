@@ -83,7 +83,10 @@ quantifiers:
     blocks in Y quantified with E
     blocks in Z quantified with A
     
-quantifier prefix: Q
+quantifier prefix: {
+    Q
+}
+
 
 operators:
 

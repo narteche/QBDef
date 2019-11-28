@@ -22,6 +22,12 @@ class Format(Enum):
     
 class ParamType(Enum):
     natural = 'natural'
+    integer = 'int'
+    string = 'str'
+    boolean = 'bool'
+    alist = 'list'
+    aSet = 'set'
+    
     
 class Parameter:
     
