@@ -15,111 +15,6 @@ try:
 except NameError:
     pass
 
-formula_family_grammar = """
-
-    start: value* formula_family
-    
-    ?value : "value:" NAME "=" EXPRESSION ";" -> handle_value
-    
-    
-
-    formula_family : name format parameters? variables quantifier_prefix matrix finish
- 
-    ?name: "name:" FAMILY_NAME ";" -> set_name
-    
-    ?format: "format:" FORMAT ";" -> set_format
-    
-    
-    
-    ?parameters: "parameters:" "{" parameter_declaration+ "}"
-    
-    ?parameter_declaration: NAME ":" PARAM_TYPE ("," EXPRESSION)* ";" -> add_parameter 
-
-
-
-    ?variables : "variables:" "{" variable_declaration+ "}"
-    
-    ?variable_declaration: NAME ("(" indices ")" ("where" index_range ("," index_range)*)?)? ";" -> add_variable
-    
-    ?indices : INDEX ("," INDEX)*
-    
-    ?index_range : indices "in" "[" EXPRESSION "," EXPRESSION "]"
-
-
-    
-    quantifier_prefix : quantifier_blocks quantifiers prefix_block
-    
-    ?quantifier_blocks : "quantifier blocks:" "{" block_definition+ "}"
-    
-    block_definition :    "define block" single_block_def conditions?
-                        | "define blocks" grouping? "{" single_block_def+ "}" conditions?
-    
-    ?single_block_def : BLOCK_NAME ("(" indices ")")? ":=" block_body ";"
-                      
-    block_body : brick ("," brick)*
-    
-    brick :    "all blocks in" BLOCK_NAME
-             | NEGATION? BLOCK_NAME ("(" indices ")")?
-             | NEGATION? NAME ("(" indices ")")?
-
-            
-    output_brick: NEGATION? BLOCK_NAME ("(" indices ")")?
-                                       
-    assignment : INDEX "=" EXPRESSION
-    
-    conditions : "where" ((index_range | assignment) | bool_condition) ("," ((index_range | assignment) | bool_condition))* ";"
-    
-    bool_condition : INDEX "!=" EXPRESSION
-    
-    grouping : "grouped in" BLOCK_NAME
-    
-    quantifiers : "quantifiers:" "{" quantifier_declaration+ "}"
-    
-    quantifier_declaration :  "block" BLOCK_NAME "quantified with" QUANTIFIER ";"
-                            | "blocks in" BLOCK_NAME "quantified with" QUANTIFIER ";"
-                            
-    prefix_block : "quantifier prefix:" "{" BLOCK_NAME "}"
-    
-    
-    
-    matrix : matrix_blocks operators output_block
-    
-    matrix_blocks : "matrix blocks:" "{" block_definition+ "}"
-    
-    operators : "operators:" "{" operator_declaration+ "}"
-    
-    operator_declaration:  "block" BLOCK_NAME "operated with" OPERATOR ";"
-                         | "blocks in" BLOCK_NAME "operated with" OPERATOR ";"
-                         | "blocks" BLOCK_NAME ("," BLOCK_NAME)+ "operated with" OPERATOR ";"
-                            
-    output_block : "output block:" "{" output_brick "}"
-        
-
-    
-    finish : -> return_formula
-
-    FAMILY_NAME : /[a-zA-Z]([ ?_?a-zA-Z0-9])*(?=;)/
-    NAME : /(?!all blocks in)[a-z]([a-zA-Z0-9])*/
-    FORMAT : "CNF" | "circuit"
-    PARAM_TYPE : "integer" | "string" | "float" | "list"
-    EXPRESSION : /[^,;\]]+/
-    INDEX : /([a-zA-Z0-9])+/
-    BLOCK_NAME : /[A-Z]([a-zA-Z0-9])*/
-    NEGATION : "-"
-    QUANTIFIER : "E" | "A"
-    OPERATOR: "AND" | "OR" | "XOR"
-    COMMENT: /\/\*((\*[^\/])|[^*])*\*\//
-    
-
-    
-    %import common.NUMBER
-    %import common.WS_INLINE
-    %import common.NEWLINE
-    %ignore WS_INLINE
-    %ignore NEWLINE
-    %ignore COMMENT
-    
-"""
 
 @v_args(inline=True)    # Affects the signatures of the methods
 class TraverseTree(Transformer):
@@ -179,7 +74,9 @@ class TraverseTree(Transformer):
     def return_formula(self):
         return self.formula
         
-parser = Lark(formula_family_grammar, parser='lalr', transformer=TraverseTree())
+grammar_file = open("grammar.lark", "r")
+grammar = grammar_file.read()
+parser = Lark(grammar, parser='lalr', transformer=TraverseTree())
 parse = parser.parse
 
 #def main():

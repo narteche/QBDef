@@ -1,67 +1,53 @@
 value: n = 10;
 value: k = 3;
+value: l = `45 - n`;
 
 name: Chromatic Formulas;
 format: circuit;
 
 parameters: {
-    n : integer, n >= 1;
-    k : integer, k >= 1;
+    n : int, `n >= 1`;
+    k : int, `k >= 1`;
 }
 
 variables: {
-    x(i, j)    where i in [1, n], j in [1, k];
-    y(i, j)    where i in [1, n], j in [1, k-1];
+    a;
+    b(1);
+    x(i, j)    where i in 1..n, j in 1..k;
+    y(i, j)    where i in 1..n, j in 1..`k-1`;
+    z(i, j)    where i, j in 1..n;
 }
 
-quantifier blocks: {
-
+blocks: {
+    
+    /* quantifier blocks */
+    
     define blocks grouped in X {
         X(i) := x(i, j);
-    } where i in [1, n], j in [1, k];
+    } where i in 1..n, j in 1..k;
 
     define blocks grouped in Y {
         Y(i) := -y(i, j);
-    } where i in [1, n], j in [1, k-1];
+    } where i in 1..n, j in 1..`k-1`;
 
     define block Q := all blocks in X, all blocks in Y;
-
-}
-
-quantifiers: {
 
     blocks in X quantified with E;
     blocks in Y quantified with A;
 
-}
+    /* matrix blocks */
 
-quantifier prefix: {Q}
-
-matrix blocks: {
-    
     define block Gamma1 := all blocks in X;
 
     define block Delta1 := all blocks in Y;
 
     define blocks grouped in SubGamma2 {
         SG2(i, j, l) := -x(i, j), -x(i, l);
-    } where i in [1, n], j in [1, k], l in [1, k], j != l;
-
-    define blocks grouped in SubDelta2 {
-        SD2(i, j, l) := y(i, j), y(i, l);
-    } where i in [1, n], j in [1, k-1], l in [1, k-1], j != l;
-
-    define block Gamma2 := all blocks in SubGamma2;
-
-    define block Delta2 := all blocks in SubDelta2;
-
-    define blocks grouped in SubGamma3 {
-        SG3(i, j, l) := -x(i, l), -x(j, l);
-    } where i in [1, n], j in [1, n], i != j, l in [1, k];
+    } where i in 1..n, j in 1..k, l in 1..k, `j != l`;
 
     define blocks grouped in SubDelta3 { 
         SD3(i, j, l) := y(i, l), y(j, l);
-    } where i in [1, n], j in [1, n], i != j, l in [1, k-1];
+    } where i, j in 1..n, `i != j`, l in 1..`k-1`;
 
     define block Gamma3 := all blocks in SubGamma3;
 
@@ -71,28 +57,8 @@ matrix blocks: {
 
     define block Delta := Delta1, Delta2, Delta3;
 
-    define block F := Gamma, Delta;
+    define block F := Q, Gamma, Delta;
 
 }
 
-operators: {
-
-    blocks in X operated with OR;
-    blocks in Y operated with AND;
-
-    blocks in SubGamma2 operated with OR;
-    blocks in SubDelta2 operated with AND;
-
-    blocks in SubGamma3 operated with OR;
-    blocks in SubDelta3 operated with AND;
-
-    blocks Gamma1, Gamma2, Gamma3 operated with AND;
-    block Gamma operated with AND;
-
-    blocks Delta1, Delta2, Delta3 operated with OR;
-    block Delta operated with OR;
-
-    block F operated with AND;
-}
-
-output block: {F}
+output block: F;
