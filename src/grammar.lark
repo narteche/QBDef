@@ -1,20 +1,20 @@
-start: value* formula_family
+start: value* formula_family //-> return_formula
 
-value : "value:" NAME "=" expression ";" //-> handle_value
+value : "value:" NAME "=" expression ";" -> handle_value
 
 formula_family : name format parameters? variables blocks output_block
 
-name: "name:" FAMILY_NAME ";" //-> set_name
+name: "name:" FAMILY_NAME ";" -> set_name
 
-format: "format:" FORMAT ";" //-> set_format
+format: "format:" FORMAT ";" -> set_format
 
 parameters: "parameters:" "{" parameter_declaration+ "}"
 
-parameter_declaration: NAME ":" PARAM_TYPE ("," expression)* ";" //-> add_parameter 
+parameter_declaration: NAME ":" PARAM_TYPE ("," expression)* ";" -> add_parameter 
 
 variables : "variables:" "{" variable_declaration+ "}"
 
-variable_declaration: NAME ("(" indices ")" ("where" index_range ("," index_range)*)?)? ";" //-> add_variable
+variable_declaration: NAME ("(" indices ")" ("where" index_range ("," index_range)*)?)? ";" -> add_variable
 
 indices : INDEX ("," INDEX)*
 
@@ -22,8 +22,8 @@ index_range : indices "in" (expression | INDEX | NAME) ".." (expression | INDEX 
 
 blocks: "blocks:" "{" block_definition (block_definition | operator_declaration | quantifier_declaration)+ "}"
 
-block_definition:   "define block" single_block_def
-                  | "define blocks" grouping? "{" single_block_def+ "}" conditions? ";"
+block_definition:   "define block" single_block_def -> add_block
+                  | "define blocks" grouping? "{" single_block_def+ "}" conditions? ";" -> add_blocks
 
 single_block_def: BLOCK_NAME ("(" indices ")")? ":=" block_body ";"
 

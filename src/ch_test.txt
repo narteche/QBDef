@@ -6,7 +6,7 @@ name: Chromatic Formulas;
 format: circuit;
 
 parameters: {
-    n : int, `n >= 1`;
+    n : int, `n >= 1`, `n < 100`;
     k : int, `k >= 1`;
 }
 
@@ -19,45 +19,15 @@ variables: {
 }
 
 blocks: {
-    
-    /* quantifier blocks */
+
     
     define blocks grouped in X {
         X(i) := x(i, j);
-    } where i in 1..n, j in 1..k;
+    } where i in 1..n, j = 3;
 
     define blocks grouped in Y {
-        Y(i) := -y(i, j);
+        Y(i) := y(i, j);
     } where i in 1..n, j in 1..`k-1`;
-
-    define block Q := all blocks in X, all blocks in Y;
-
-    blocks in X quantified with E;
-    blocks in Y quantified with A;
-
-    /* matrix blocks */
-
-    define block Gamma1 := all blocks in X;
-
-    define block Delta1 := all blocks in Y;
-
-    define blocks grouped in SubGamma2 {
-        SG2(i, j, l) := -x(i, j), -x(i, l);
-    } where i in 1..n, j in 1..k, l in 1..k, `j != l`;
-
-    define blocks grouped in SubDelta3 { 
-        SD3(i, j, l) := y(i, l), y(j, l);
-    } where i, j in 1..n, `i != j`, l in 1..`k-1`;
-
-    define block Gamma3 := all blocks in SubGamma3;
-
-    define block Delta3 := all blocks in SubDelta3;
-
-    define block Gamma := Gamma1, Gamma2, Gamma3;
-
-    define block Delta := Delta1, Delta2, Delta3;
-
-    define block F := Q, Gamma, Delta;
 
 }
 
