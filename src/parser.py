@@ -8,6 +8,7 @@ Created on Thu Nov 14 12:38:01 2019
 
 from lark import Lark, Transformer, v_args
 from representation import QBF
+from itertools import chain
 
 try:
     input = raw_input   # For Python2 compatibility
@@ -17,9 +18,6 @@ except NameError:
 
 @v_args(inline=True)    # Affects the signatures of the methods
 class TraverseTree(Transformer):
-    #from operator import lt, le, eq, ne, ge, gt, mod, add, sub, mul, truediv as div, neg
-    #number = int
-
     def __init__(self):
         self.formula = QBF()
     
@@ -61,28 +59,24 @@ class TraverseTree(Transformer):
                         theIndices.append(str(ix))
                 except:    
                     theIndices = str(inds)
+                    
                 lim1 = str(ran[1])
                 lim2 = str(ran[2])
                
-                completeRange = [theIndices, [lim1, lim2]]
-                completeRanges.append(completeRange)
-        self.formula.add_variable(varName, varIndices, completeRanges)
-        print("VARIABLE: adding variable {} with indices {} and ranges {}".format(varName, varIndices, completeRanges))
+                for ix in theIndices:
+                    completeRanges.append([ix, (lim1, lim2)])
+                #completeRange = [theIndices, [lim1, lim2]]
+                #completeRanges.append(completeRange)
 
-    def add_block(self, block_def):
-        to_send = self.handle_block_def(block_def)
-        self.formula.add_block(to_send[0], to_send[1])
+        self.formula.add_variables(varName, varIndices, completeRanges)
+        print("VARIABLE: adding variable {} with indices {} and ranges {}".format(varName, varIndices, completeRanges))
         
     def add_blocks(self, *everything):
-        grouping = []
+        grouping = None
         definitions = []
         conditions = []
         
         for elem in everything:
-            grps = elem.find_data("grouping")
-            for g in grps:
-                grouping = g
-            
             defs = elem.find_data("single_block_def")
             for d in defs:
                 definitions.append(d)
@@ -91,24 +85,54 @@ class TraverseTree(Transformer):
             for c in conds:
                 for cprime in c.children:
                     conditions.append(cprime)
+            
+            grps = elem.find_data("grouping")
+            for g in grps:
+                grouping = g
         
-        grouping_to_send = self.handle_grouping(grouping)
         defs_to_send = [self.handle_block_def(d) for d in definitions]
-        conds_to_send = [self.handle_condition(c) for c in conditions]
+        conds_to_send = []
+        for c in conditions:
+            conds_to_send = conds_to_send + list(chain(self.handle_condition(c)))
+        grouping_to_send = self.handle_grouping(grouping)
         
-        self.formula.add_blocks(grouping_to_send, defs_to_send, conds_to_send)
-     
+        self.formula.add_blocks(defs_to_send, conds_to_send, grouping_to_send)
+    
+    def add_attributes(self, *contents):
+        att = str(contents[len(contents)-1])
+        contents = contents[:len(contents)-1]
+        name_indices_pairs = []
+        current_block = [[], []]
+        for elem in contents:
+            try:
+                if elem.data == "indices":
+                    current_block[1] = [str(i) for i in elem.children]
+                    name_indices_pairs.append(current_block)
+                    current_block = [[], []]
+            except:
+                if current_block[0]:
+                    name_indices_pairs.append(current_block)
+                current_block = [str(elem), []]
+        if current_block[0]:
+            name_indices_pairs.append(current_block)
+        
+        print(name_indices_pairs)
+        for block in name_indices_pairs:
+            print("ATTRIBUTE: adding attribute {} to block {} with indices {}".format(att, block[0], block[1]))
+         #   self.formula.add_attribute(block[0], block[1], att)
+        
     def handle_condition(self, condition):
         condition = condition.children[0]
-        condition_to_send = []
+        conditions_to_send = []
         if condition.data == 'index_range':
-            condition_to_send = ['range', [str(ix) for ix in condition.children[0].children], str(condition.children[1]), str(condition.children[2])]
+            for ix in condition.children[0].children:
+                conditions_to_send = [[str(ix), (str(condition.children[1]), str(condition.children[2]))] for ix in condition.children[0].children]
         elif condition.data == 'assignment':
-            condition_to_send = ['assignment', str(condition.children[0]), str(condition.children[1])]
+            conditions_to_send = [[str(condition.children[0]), (str(condition.children[1]), str(condition.children[1]))]]
         else:
-            condition_to_send = ['other', str(condition.children[0])]
+            conditions_to_send = [['other', str(condition.children[0])]]
             
-        return condition_to_send
+        return conditions_to_send
         
         
     def handle_block_def(self, block_def):
@@ -139,11 +163,11 @@ class TraverseTree(Transformer):
                     for ix in components[1].children:
                         indices.append(str(ix))
                     
-                brick_to_send = [(sign, name), indices]
+                brick_to_send = ((sign, name), indices)
             bricks_to_send.append(brick_to_send)
         
         print("BLOCK: adding block {} with body {}.".format(block_name, bricks_to_send))
-        return block_name, bricks_to_send
+        return [block_name, bricks_to_send]
     
     def handle_grouping(self, grp):
         return str(grp.children[0])

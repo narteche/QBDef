@@ -20,15 +20,16 @@ variables: {
 
 blocks: {
 
-    
     define blocks grouped in X {
-        X(i) := x(i, j);
+        X(i) := x(i, j), y(i, 1);
     } where i in 1..n, j = 3;
 
     define blocks grouped in Y {
-        Y(i) := y(i, j);
+        Y(i) := y(i, j), all blocks in X;
     } where i in 1..n, j in 1..`k-1`;
 
+    block X(1) quantified with E;
+    blocks X, Y quantified with A;
 }
 
 output block: F;

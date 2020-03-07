@@ -22,7 +22,7 @@ index_range : indices "in" (expression | INDEX | NAME) ".." (expression | INDEX 
 
 blocks: "blocks:" "{" block_definition (block_definition | operator_declaration | quantifier_declaration)+ "}"
 
-block_definition:   "define block" single_block_def -> add_block
+block_definition:   "define block" single_block_def -> add_blocks
                   | "define blocks" grouping? "{" single_block_def+ "}" conditions? ";" -> add_blocks
 
 single_block_def: BLOCK_NAME ("(" indices ")")? ":=" block_body ";"
@@ -43,13 +43,12 @@ assignment: INDEX "=" expression
 
 other_condition: expression
              
-quantifier_declaration:   "block" BLOCK_NAME "quantified with" QUANTIFIER ";"
-                        | "blocks in" BLOCK_NAME  "quantified with" QUANTIFIER ";"
-                        | "blocks" BLOCK_NAME ("," BLOCK_NAME)+ "quantified with" QUANTIFIER ";"
+quantifier_declaration:   "block" BLOCK_NAME ("(" indices ")")? "quantified with" QUANTIFIER ";" -> add_attributes
+						| "blocks" BLOCK_NAME ("(" indices ")")? ("," BLOCK_NAME ("(" indices ")")?)+ "quantified with" QUANTIFIER ";" -> add_attributes
 
-operator_declaration:   "block" BLOCK_NAME "operateda with" OPERATOR ";"
-                        | "blocks in" BLOCK_NAME  "operated with" OPERATOR ";"
-                        | "blocks" BLOCK_NAME ("," BLOCK_NAME)+ "operated with" OPERATOR ";"
+
+operator_declaration:   "block" BLOCK_NAME ("(" indices ")")? "operated with" OPERATOR ";"
+                      | "blocks" BLOCK_NAME ("(" indices ")")? ("," BLOCK_NAME ("(" indices ")")?)+ "operated with" OPERATOR ";"
 
 output_block: "output block:" BLOCK_NAME ";"
 
