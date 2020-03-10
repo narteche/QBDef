@@ -31,7 +31,8 @@ class Parameter:
         self.paramConstraints = pCons
         self.paramEvaluatedConstraints = pEval
         
-
+    def get_name(self):
+        return self.paramName
 class Block:
     
     def __init__(self, bName = "", bId = "", bBody = set(), bGroup = None, bAtt = []):
@@ -43,6 +44,15 @@ class Block:
         
     def add_attribute(self, bAtt):
         self.blockAtt = bAtt
+    
+    def get_body(self):
+        return self.blockBody
+    
+    def get_name(self):
+        return self.blockName
+    
+    def get_attribute_str(self):
+        return str(self.blockAtt)
 
 class QBF:
     
@@ -61,6 +71,8 @@ class QBF:
         self.blocks = {}
         self.block_contents = {}
         self.groupings = {}
+        
+        self.final = None
     
     # ====== Name ======
     def get_name(self):
@@ -78,6 +90,12 @@ class QBF:
             self.format = Format.CNF
         else:
             self.format = Format.circuit
+            
+    def format_in_string(self):
+        if self.format == Format.CNF:
+            return "CNF"
+        else:
+            return "circuit"
             
     # ====== Values ======
     def get_values(self):
@@ -147,7 +165,7 @@ class QBF:
     
     # some basic manipulation functions are needed here... 
     def get_block(self, blockId):
-        return self.blockContents[blockId]
+        return self.block_contents[blockId]
     
     # a block definition looks like:
     # [('X', ['i', 'j']), [((sign, name), indices), ...]]
@@ -182,13 +200,9 @@ class QBF:
                             if brickIdWithSign not in cs:
                                 contents.append(brickIdWithSign)
                                 cs.add(brickIdWithSign)
-                        print(contents)
-                        print(cs)
                 self.save_block_contents(blockName, contents, grouping)
-                print("the block {} has contents {} in grp {}".format(blockName, contents, grouping))
         self.save_grouping(grouping, ids_for_grouping)
-        print(self.groupings)
-            
+
     def get_brick_id(self, normName):
         if normName in self.variables:
             return self.variables[normName]
@@ -211,22 +225,36 @@ class QBF:
         self.block_contents[bId] = Block(normName, bId, contents, grp)
         
     def save_grouping(self, grp, ids):
-        self.groupings[grp] = ids
+        if grp:
+            self.groupings[grp] = ids
     
     def get_bricks_in_grouping(self, grp):
         return self.groupings[grp]
     
     def update_block_with_attribute(self, blockId, att):
         block = self.get_block(blockId)
-        block.add_atribute(att)
+        block.add_attribute(att)
         self.block_contents[blockId] = block
     
     # ====== Quantifiers and operators =======
     def add_attribute(self, blockName, blockIndices, att):
-        print("Receiving block {} with indices {} for attribute {}".format(blockName, blockIndices, att))
+        #print("Receiving block {} with indices {} for attribute {}".format(blockName, blockIndices, att))
         normName = self.normalize_name(blockName, blockIndices)
-        blockId = self.getBrickId(normName)
-        self.update_block_with_attribute(blockId, quantifier)
+        blockId = self.get_brick_id(normName)
+        self.update_block_with_attribute(blockId, att)
+        
+    def add_attributes_grp(self, grp, att):
+        if grp not in self.groupings:
+            print("GROUPING ERROR: grouping name {} is not defined".format(grp))
+        else:
+            for block_id in self.groupings[grp]:
+                self.update_block_with_attribute(block_id, att)
+                
+    # ====== Final block ========
+    def save_final_block(self, name, indices):
+        normName = self.normalize_name(name, indices)
+        blockId = self.get_brick_id(normName)
+        self.final = blockId
     
     # ====== EXTRA methods ======    
     def evaluate(self, expr, extra_values={}):
@@ -264,33 +292,6 @@ class QBF:
                 for ix in range(lim1, lim2 + 1):
                     valuedIndices[index] = ix
                     yield from self.recursive_iteration(conditions, currentCondition + 1, valuedIndices)
-    
-#    def iterate_ranges(self, varRanges):
-#        for i in range(len(varRanges)):
-#            varRanges[i][1] = (self.evaluate(varRanges[i][1][0]), self.evaluate(varRanges[i][1][1])) 
-#        keys, intervals = zip(*varRanges)
-#        intervals = [range(x, y + 1) for x, y in intervals]
-#        yield from (dict(zip(keys, v)) for v in product(*intervals))
-#    
-#    def iterate_conditions(self, conditions):
-#        booleanConditions = [c[1] for c in conditions if c[0] == 'other']
-#        rangeConditions   = [[c[1], c[2]] for c in conditions if c[0] != 'other']
-#        
-#        
-#        for i in range(len(rangeConditions)):    
-#            rangeConditions[i][1] = (self.evaluate(rangeConditions[i][0]), self.evaluate(rangeConditions[i][1])) 
-#        keys, intervals = zip(*rangeConditions)
-#        intervals = [range(x, y + 1) for x, y in intervals]
-#        
-#        for v in product(*intervals):
-#            valuedVariables = dict(zip(keys, v))
-#            if self.verifies_conditions(valuedVariables, booleanConditions):
-#                yield valuedVariables 
-#    
-#    def verifies_conditions(self, valuedVariables, conditions):
-#        for c in conditions:
-#            print(c)
-#        return not (False in [self.evaluate(c, valuedVariables) for c in conditions])
         
     def substitute(self, indices, values, extra_values={}):
         subs = []
@@ -306,4 +307,34 @@ class QBF:
     def is_defined(self, name):
         return (name in self.variables) or (name in self.blocks)
     
-    
+    def print_formula(self):
+        my_formula = "========== Printed QBF ==========\n"
+        my_formula = my_formula + "Printing the formula of the family {}, defined in {} format, for the VALUES:\n".format(self.get_name(), self.format_in_string()) 
+        my_formula = my_formula + "\n"
+        for val in ["    {} = {};\n".format(param.get_name(), self.values[param.get_name()]) for param in self.get_parameters()]:
+            my_formula = my_formula + val
+        my_formula = my_formula + "\n"
+        
+        my_formula = my_formula +  "The formula has the following {} variables, with assigned corresponding numeric identifiers:\n\n".format(len(self.get_variables()))
+        for var in self.get_variables():
+            my_formula = my_formula + "    {} --> {}\n".format(var, self.variables[var])
+        my_formula = my_formula + "\n"
+        
+        my_formula = my_formula +  "The formula has the following {} blocks, with assigned corresponding numeric identifiers and contents:\n\n".format(len(self.blocks))
+        for b in self.blocks:
+            my_formula = my_formula + "    {} --> {}, with contents {}\n".format(b, self.blocks[b], self.block_contents[self.blocks[b]].get_body())
+        my_formula = my_formula + "\n"
+        
+        my_formula = my_formula +  "The formula has the following {} groupings, which contains the following blocks:\n\n".format(len(self.groupings))
+        for g in self.groupings:
+            my_formula = my_formula + "    {}, with contents {}\n".format(g, self.groupings[g])
+        my_formula = my_formula + "\n"
+        
+        my_formula = my_formula + "The formula has the following quantifiers and operators associated to the blocks: \n"
+        for block in self.block_contents:
+            my_formula = my_formula + "    Block {}, with attribute {}\n".format(block, self.block_contents[block].get_attribute_str())
+        my_formula = my_formula + "\n"
+        my_formula = my_formula + "The output of the formula is determined by the block {}, i.e. {}\n".format(self.final, self.block_contents[self.final].get_name())
+        my_formula = my_formula + "======================================================\n"
+        
+        print(my_formula)

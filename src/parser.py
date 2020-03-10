@@ -95,7 +95,6 @@ class TraverseTree(Transformer):
         for c in conditions:
             conds_to_send = conds_to_send + list(chain(self.handle_condition(c)))
         grouping_to_send = self.handle_grouping(grouping)
-        
         self.formula.add_blocks(defs_to_send, conds_to_send, grouping_to_send)
     
     def add_attributes(self, *contents):
@@ -116,10 +115,15 @@ class TraverseTree(Transformer):
         if current_block[0]:
             name_indices_pairs.append(current_block)
         
-        print(name_indices_pairs)
         for block in name_indices_pairs:
             print("ATTRIBUTE: adding attribute {} to block {} with indices {}".format(att, block[0], block[1]))
-         #   self.formula.add_attribute(block[0], block[1], att)
+            self.formula.add_attribute(block[0], block[1], att)
+         
+    def add_attribute_to_grouping(self, grp, att):
+        grp_name = str(grp)
+        att = str(att)
+        print("ATTRIBUTE: adding attribute {} to all blocks in grouping {}".format(att, grp_name))
+        self.formula.add_attributes_grp(grp, att)
         
     def handle_condition(self, condition):
         condition = condition.children[0]
@@ -170,9 +174,19 @@ class TraverseTree(Transformer):
         return [block_name, bricks_to_send]
     
     def handle_grouping(self, grp):
-        return str(grp.children[0])
+        if grp:
+            return str(grp.children[0])
+        else:
+            return grp
+
+    def add_final_block(self, name, indices=[]):
+        if indices:
+            indices = [str(ix) for ix in indices.children]
+        self.formula.save_final_block(name, indices)      
+        print("FINAL BLOCK: block {} with indices {} saves as output block".format(name, indices))
             
     def return_formula(self, *r):
+        self.formula.print_formula()
         return self.formula
         
 grammar_file = open("grammar.lark", "r")
@@ -182,15 +196,18 @@ parse = parser.parse
    
 
 def main():
-    f = open("ch_test.txt", "r")
+    f = open("KBKF.txt", "r")
     s = f.read()
+    print("========== PARSING MESSAGES ==========")
+    print("")
     parsed_formula = parse(s)
+    print("")
     #print(parsed_formula.pretty())
-    formula = None
-    for sub in parsed_formula.iter_subtrees():
-        if sub.data == "formula_family":
-            chil = sub.children
-            formula = chil[len(chil) - 1]
+#    formula = None
+#    for sub in parsed_formula.iter_subtrees():
+#        if sub.data == "formula_family":
+#            chil = sub.children
+#            formula = chil[len(chil) - 1]
 
 if __name__ == '__main__':
     # test()
