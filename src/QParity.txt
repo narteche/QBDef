@@ -1,0 +1,53 @@
+value: n = 500;
+
+name: QParity;
+format: circuit;
+
+parameters: {
+    n : int, `n >= 1`;
+}
+
+variables: {
+    x(i)    where i in 1..n;
+    z;
+}
+
+blocks: {
+
+    /* === blocks for quantifers === */
+    
+    define blocks {
+        X := x(i);
+    } where i in 1..n;
+
+    define block Z := z;
+
+    define block Q := X, Z;
+
+    block X quantified with E;
+    block Z quantified with A;
+
+    /* ==== blocks for matrix ==== */
+
+    define blocks grouped in T {
+        T(2) := x(1), x(2);
+        T(i) := T(s), x(i);
+    } where i in 2..n, s = `i-1`;
+
+    define blocks grouped in Ro {
+        Ro1 := z, T(n);
+        Ro2 := -z, -T(n);
+    };
+
+    define block F := Ro1, Ro2;
+
+    all blocks in T operated with XOR;
+    all blocks in Ro operated with OR;
+    block F operated with AND;
+
+    /* define the output block */
+    define block Phi := Q, F;
+
+}
+
+output block: Phi;

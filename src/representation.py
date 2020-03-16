@@ -7,7 +7,7 @@ Created on Thu Nov 14 11:54:40 2019
 """
 from itertools import product
 from enum import Enum
-
+from time import time
 class Quantifier(Enum):
     EXISTS = 'E'
     FORALL = 'A'
@@ -171,37 +171,43 @@ class QBF:
     # [('X', ['i', 'j']), [((sign, name), indices), ...]]
     
     def add_blocks(self, definitions, conditions, grouping=None):
-        
+       
         ids_for_grouping = []
-        
-        for definition in definitions:
-            left = definition[0]
-            bricks = definition[1]
-            name = left[0]
-            for left_values in self.iterate(conditions):
+        for left_values in self.iterate(conditions):
+            for definition in definitions:
+                left = definition[0]
+                bricks = definition[1]
+                name = left[0]
                 substitutedIndices = self.substitute(left[1], left_values)
                 blockName = self.normalize_name(name, substitutedIndices)
                 if self.is_defined(blockName):
                     continue
-                self.save_block(blockName)
+                else:
+                    self.save_block(blockName)
                 ids_for_grouping.append(self.get_brick_id(blockName))
                 contents = []
                 cs = set()
-                for brick in bricks:
-                    if brick[0] == "all blocks in":
-                        contents = contents + self.get_bricks_in_grouping(brick[1])
+                for i in range(len(bricks)):
+                    if bricks[i][0] == "all blocks in":
+                        contents.append([self.get_bricks_in_grouping(bricks[i][1])])
                     else:
-                        bSign = brick[0][0]
-                        bName = brick[0][1]
-                        for valuedIndices in self.iterate(conditions):
+                        contents.append([])
+
+                for valuedIndices in self.iterate(conditions):
+                    for i in range(len(bricks)):
+                        brick = bricks[i]
+                        if brick[0] != "all blocks in":
+                            bSign = brick[0][0]
+                            bName = brick[0][1]
                             indices = self.substitute(brick[1], left_values, valuedIndices)
                             brickId = self.get_brick_id(self.normalize_name(bName, indices,  brick[1]))
                             brickIdWithSign = int(bSign + str(brickId))
                             if brickIdWithSign not in cs:
-                                contents.append(brickIdWithSign)
+                                contents[i].append(brickIdWithSign)
                                 cs.add(brickIdWithSign)
+                contents = [elem for b in contents for elem in b]
                 self.save_block_contents(blockName, contents, grouping)
-        self.save_grouping(grouping, ids_for_grouping)
+        self.save_grouping(grouping, ids_for_grouping)    
 
     def get_brick_id(self, normName):
         if normName in self.variables:
@@ -273,9 +279,31 @@ class QBF:
         varName = varName + ' )'
         return varName
     
+    # def iterate(self, conditions):
+    #     yield from self.recursive_iteration(conditions, 0, {})
+
     def iterate(self, conditions):
-        yield from self.recursive_iteration(conditions, 0, {})
-        
+        stack = [[{}, 0]]
+        while stack:
+            valuedIndices, currentCondition = stack.pop(0)
+            if currentCondition < len(conditions):
+                condition = conditions[currentCondition]
+                if condition[0] == 'other':
+                    booleanCondition = self.evaluate(condition[1], valuedIndices)
+                    if booleanCondition:
+                        currentCondition = currentCondition + 1 
+                    else:
+                        continue
+                else:
+                    index = condition[0]
+                    lim1 = self.evaluate(condition[1][0], valuedIndices)
+                    lim2 = self.evaluate(condition[1][1], valuedIndices)
+                    for ix in range(lim1, lim2 + 1):
+                        valuedIndices[index] = ix
+                        stack.append([valuedIndices.copy(), currentCondition + 1])
+            else:
+                yield valuedIndices
+
     def recursive_iteration(self, conditions, currentCondition, valuedIndices):
         if currentCondition == len(conditions):
             yield valuedIndices
@@ -296,7 +324,9 @@ class QBF:
     def substitute(self, indices, values, extra_values={}):
         subs = []
         for ix in indices:
-            if ix in values:
+            if ix in self.values:
+                subs.append(self.values[ix])
+            elif ix in values:
                 subs.append(values[ix])
             elif ix in extra_values:
                 subs.append(extra_values[ix])

@@ -9,6 +9,7 @@ Created on Thu Nov 14 12:38:01 2019
 from lark import Lark, Transformer, v_args
 from representation import QBF
 from itertools import chain
+from time import time
 
 try:
     input = raw_input   # For Python2 compatibility
@@ -196,11 +197,13 @@ parse = parser.parse
    
 
 def main():
-    f = open("KBKF.txt", "r")
+    f = open("QParity.txt", "r")
     s = f.read()
     print("========== PARSING MESSAGES ==========")
     print("")
+    t = time()
     parsed_formula = parse(s)
+    print(time() - t)
     print("")
     #print(parsed_formula.pretty())
 #    formula = None
