@@ -1,8 +1,8 @@
-value: n = 7;
-value: k = 5;
+value: n = 5;
+value: k = 3;
 
 name: Chromatic Formulas;
-format: circuit;
+format: circuit-prenex;
 
 parameters: {
     n : int, `n >= 1`;
@@ -23,7 +23,7 @@ blocks: {
     } where i in 1..n, j in 1..k;
 
     define blocks grouped in Y {
-        Y(i) := -y(i, j);
+        Y(i) := y(i, j);
     } where i in 1..n, j in 1..`k-1`;
 
     define block Q := all blocks in X, all blocks in Y;
@@ -33,9 +33,17 @@ blocks: {
 
     /* ==== blocks for matrix ==== */
 
-    define block Gamma1 := all blocks in X;
+    define blocks grouped in XGGr {
+        XG(i) := x(i, j);
+    } where i in 1..n, j in 1..k;
 
-    define block Delta1 := all blocks in Y;
+    define blocks grouped in YGGr {
+        YG(i) := -y(i, j);
+    } where i in 1..n, j in 1..`k-1`;
+
+    define block Gamma1 := all blocks in XGGr;
+
+    define block Delta1 := all blocks in YGGr;
 
     define blocks grouped in SubGamma2 {
         SG2(i, j, l) := -x(i, j), -x(i, l);
@@ -67,8 +75,8 @@ blocks: {
 
     define block F := Gamma, Delta;
 
-    all blocks in X operated with OR;
-    all blocks in Y operated with AND;
+    all blocks in XGGr operated with OR;
+    all blocks in YGGr operated with AND;
 
     all blocks in SubGamma2 operated with OR;
     all blocks in SubDelta2 operated with AND;

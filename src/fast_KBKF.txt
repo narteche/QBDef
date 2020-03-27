@@ -1,4 +1,4 @@
-value: t = 1000;
+value: t = 10;
 
 name: FAST KBKF;
 format: CNF;
@@ -34,14 +34,16 @@ blocks:  {
         YRest := y(j);
     } where j in `t+1`..`t+t`;
 
-    define blocks {
-        Intermediate := Y(i), X(i);
+    define blocks grouped in Pairs {
+        Pair(i) := Y(i), X(i);
     } where i in 1..t;
 
-    define block Q := Y(0), Intermediate, YRest;
+    define block Q := Y(0), all blocks in Pairs, YRest;
 
+    block Y(0) quantified with E;
     all blocks in X quantified with A;
     all blocks in Y quantified with E;
+    block YRest quantified with E;
 
     /* ==== blocks for formula ==== */
 
@@ -65,12 +67,14 @@ blocks:  {
 
     define block F := CMinus, C(0), all blocks in C1, all blocks in C2, all blocks in C3;
 
-    blocks CMinus, C(0) operated with OR;
+    block C(0) operated with OR;
     all blocks in C1 operated with OR;
     all blocks in C2 operated with OR;
     all blocks in C3 operated with OR;
     
     block F operated with AND;
+
+    define block Phi := Q, F;
 }
 
-output block: F;
+output block: Phi;

@@ -1,10 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 14 12:38:01 2019
 
-@author: alephnoell
-"""
 
 from lark import Lark, Transformer, v_args
 from representation import QBF
@@ -194,3 +188,28 @@ class TraverseTree(Transformer):
     def return_formula(self, *r):
         self.formula.print_formula()
         return self.formula
+
+grammar_file = open("grammar.lark", "r")
+grammar = grammar_file.read()
+parser_obj = Lark(grammar, parser='lalr', transformer=TraverseTree())
+parse = parser_obj.parse
+
+def main():
+    print("hehe")
+    f = open("fast_KBKF.txt", "r")
+    s = f.read()
+    print("========== PARSING MESSAGES ==========")
+    print("")
+    t = time()
+    parsed_formula = parse(s)
+    qcir = parsed_formula.get_QCIR_string()
+    qdimacs = parsed_formula.get_QDIMACS_string()
+    print(qcir)
+    print(qdimacs)
+    print(time() - t)
+    print("")
+
+
+
+if __name__ == '__main__':
+    main()

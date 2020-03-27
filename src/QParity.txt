@@ -1,7 +1,7 @@
-value: n = 500;
+value: n = 10;
 
 name: QParity;
-format: circuit;
+format: circuit-prenex;
 
 parameters: {
     n : int, `n >= 1`;
@@ -32,7 +32,7 @@ blocks: {
     define blocks grouped in T {
         T(2) := x(1), x(2);
         T(i) := T(s), x(i);
-    } where i in 2..n, s = `i-1`;
+    } where i in 3..n, s = `i-1`;
 
     define blocks grouped in Ro {
         Ro1 := z, T(n);

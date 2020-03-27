@@ -1,4 +1,4 @@
-value: t = 20;
+value: t = 4;
 
 name: KBKF;
 format: CNF;
@@ -54,6 +54,8 @@ blocks:  {
 
     all blocks in C operated with OR;
     block F operated with AND;
+
+    define block Phi := Q, F;
 }
 
-output block: F;
+output block: Phi;
