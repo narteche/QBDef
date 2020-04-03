@@ -195,7 +195,6 @@ parser_obj = Lark(grammar, parser='lalr', transformer=TraverseTree())
 parse = parser_obj.parse
 
 def main():
-    print("hehe")
     f = open("fast_KBKF.txt", "r")
     s = f.read()
     print("========== PARSING MESSAGES ==========")

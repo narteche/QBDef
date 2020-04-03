@@ -1,0 +1,8 @@
+#QCIR-14
+output(g5)
+4 = or(1, 2)
+5 = or(3, 2)
+6 = exists(1
+7 = exists(3
+8 = and(6, 7)
+forall(2; 8)

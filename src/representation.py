@@ -192,7 +192,6 @@ class QBF:
             
     # ====== Blocks ======
     
-    # some basic manipulation functions are needed here... 
     def get_block(self, blockId):
         return self.block_contents[blockId]
     
@@ -393,7 +392,7 @@ class QBF:
             return self.generate_QDIMACS_from_prenex_QCIR()
 
         elif self.format == "circuit-prenex":
-            print("We could use the GhostQ converter!")
+            print("Use GhostQ converter?")
             # 1. generate QCIR
             # 2. call GhostQ
 
@@ -401,7 +400,7 @@ class QBF:
             print("Prenexing not yet supported!")
     
     def generate_QDIMACS_from_prenex_QCIR(self):
-        # if QCIR was not generated it yet, do it
+        # if QCIR was not generated yet, do it
         if not self.QCIR_str:
             self.generate_QCIR()
         
@@ -479,9 +478,6 @@ class QBF:
             varName = varName + ' ' + str(valuedIndices[index]) if index in valuedIndices else varName + ' ' + str(index)
         varName = varName + ' )'
         return varName
-    
-    # def iterate(self, conditions):
-    #     yield from self.recursive_iteration(conditions, 0, {})
 
     def iterate(self, conditions, extra_valued_indices={}):
         stack = [[{}, 0]]
