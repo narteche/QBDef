@@ -1,4 +1,4 @@
-value: n = 10;
+value: n = 1300;
 
 name: QParity;
 format: circuit-prenex;

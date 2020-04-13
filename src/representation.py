@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 14 11:54:40 2019
-
-@author: alephnoell
-"""
 from enum import Enum
 from time import time
+from sys import exit 
+from os import system, remove
+#==============================================================================
+#============ Operator, quantifier and format representations =================
+#==============================================================================
 
 class Quantifier(Enum):
     EXISTS = 'exists'
@@ -18,12 +16,14 @@ class Operator(Enum):
     XOR = 'xor'
     
 class Format(Enum):
-    circuit = 'circuit'
     circuit_PRENEX = 'circuit-prenex'
     circuit_NON_PRENEX = 'circuit-nonprenex'
     CNF = 'CNF'
-    
   
+#==============================================================================
+#=========================== Parameter representation =========================
+#==============================================================================
+
 class Parameter:
     
     def __init__(self, pName = "", pType="", pValue = None, pCons = [], pEval = []):
@@ -35,7 +35,11 @@ class Parameter:
         
     def get_name(self):
         return self.paramName
-        
+    
+#==============================================================================
+#============================= Block representation ===========================
+#==============================================================================
+
 class Block:
     
     def __init__(self, bName = "", bId = "", bBody = [], bGroup = None, bAtt = None):
@@ -46,6 +50,10 @@ class Block:
         self.blockAtt = bAtt
         
     def add_attribute(self, bAtt):
+        if self.blockAtt:
+            print("ATTRIBUTE ERROR: block {} already has an attribute ({}) and thus it cannot be assigned another one ({}).".format(self.blockName, self.blockAtt.value, bAtt))
+            exit()
+
         if bAtt == "E":
             self.blockAtt = Quantifier.EXISTS
         elif bAtt == "A":
@@ -56,6 +64,9 @@ class Block:
             self.blockAtt = Operator.OR
         elif bAtt == "AND":
             self.blockAtt = Operator.AND
+        else:
+            print("ATTRIBUTE ERROR: attribute {} is not a valid input.".format(bAtt))
+            exit()
 
     def get_body(self):
         return self.blockBody
@@ -76,6 +87,10 @@ class Block:
             return True
         else:
             return False
+
+#==============================================================================
+#============================= QBF representation =============================
+#==============================================================================
 
 class QBF:
     
@@ -99,34 +114,36 @@ class QBF:
         self.QCIR_str = None
         self.QDIMACS_str = None
     
-    # ====== Name ======
+    # ======================== Name ========================
     def get_name(self):
         return self.name
     
     def set_name(self, name):
         self.name = name
         
-    # ===== Format ======
+    # ======================= Format =======================
     def get_format(self):
         return self.format
+
+    def get_format_str(self):
+        if not self.format:
+            return "None"
+        else:
+            return str(self.format.value)
     
     def set_format(self, f):
-        self.format = f
-        return
         if f == 'CNF':
             self.format = Format.CNF
         elif f == 'circuit-prenex':
             self.format = Format.circuit_PRENEX
-        else:
+        elif f == 'circuit-nonprenex':
             self.format = Format.circuit_NON_PRENEX
-            
-    def format_in_string(self):
-        if self.format == Format.CNF:
-            return "CNF"
         else:
-            return str(self.format)
+            print("FORMAT ERROR: {} is not one of the valid formats! It should be: CNF, circuit-prenex or circuit-nonprenex.".format(f))
+            exit()
+
             
-    # ====== Values ======
+    # ======================= Values =======================
     def get_values(self):
         return self.values
     
@@ -134,12 +151,16 @@ class QBF:
         self.values = newValues
     
     def get_value(self, name):
-        return self.values[name]
+        try: 
+            return self.values[name]
+        except:
+            print("VALUE ERROR: Value for {} does not exist.".format(paramName))
+            exit()
     
     def add_value(self, name, expression):
         self.values[name] = self.evaluate(expression)
     
-    # ====== Parameters ======
+    # ===================== Parameters =====================
     def get_parameters(self):
         return self.parameters
     
@@ -147,23 +168,18 @@ class QBF:
         self.parameters = params
     
     def add_parameter(self, paramName, paramType, cons):
-        try:
-            value = self.values[paramName]
-        except:
-            print("PARAMETER ERROR: Cannot find appropriate value for parameter {}".format(paramName))
-            exit()
-        
+        value = self.get_value(paramName)
         constraints = []
         for expr in cons:
-            res = self.evaluate(expr) # bring variables into scope
+            res = self.evaluate(expr)
             constraints.append(res)
         for i in range(len(constraints)):
             if not constraints[i]:
                 print("PARAMETER ERROR: Constraint \'{}\' for parameter {} was violated.".format(cons[i], paramName))
+                exit()
         self.parameters.append(Parameter(paramName, paramType, value, cons, constraints))
         
-        
-    # ====== Variables ======
+    # ===================== Variables =====================
     def get_variables(self):
         return self.variables
     
@@ -175,6 +191,7 @@ class QBF:
             return self.variables[normVarName]
         except:
             print("VARIABLE ERROR: Variable {} has not been declared.".format(normVarName))
+            exit()
 
     def add_variables(self, varName, varIndices=[], varRanges=[]):        
         if varIndices and varRanges:
@@ -186,19 +203,22 @@ class QBF:
     def save_variable(self, normVarName):
         if normVarName in self.variables:
             print("VARIABLE ERROR: Variable {} is being declared more than once!".format(normVarName))
+            exit()
         else:
             self.idCounter = self.idCounter + 1
             self.variables[normVarName] = self.idCounter
             
-    # ====== Blocks ======
-    
+    # ===================== Blocks =======================
     def get_block(self, blockId):
-        return self.block_contents[blockId]
-    
-    # a block definition looks like:
-    # [('X', ['i', 'j']), [((sign, name), indices), ...]]
+        try:
+            return self.block_contents[blockId]
+        except:
+            print("BLOCK ERROR: block {} is not defined.".format(blockId))
+            exit()
     
     def add_blocks(self, definitions, conditions, grouping=None):
+        # a block definition looks like:
+        # [('X', ['i', 'j']), [((sign, name), indices), ...]]
         ids_for_grouping = []
         for definition in definitions:
             left = definition[0]
@@ -252,15 +272,15 @@ class QBF:
             return self.blocks[normName]
         else:
             print("BRICK ERROR: Block or variable {} has not been declared.".format(normName))
+            exit()
 
     def save_block(self, normBlockName):
         if normBlockName in self.blocks:
             print("BLOCK ERROR: Block {} is being declared more than once!".format(normBlockName))
-            return False
+            exit()
         else:
             self.idCounter = self.idCounter + 1
             self.blocks[normBlockName] = self.idCounter
-            return True
             
     def save_block_contents(self, normName, contents, grp):
         bId = self.get_brick_id(normName)
@@ -271,14 +291,17 @@ class QBF:
             self.groupings[grp] = ids
     
     def get_bricks_in_grouping(self, grp):
-        return self.groupings[grp]
+        try:
+            return self.groupings[grp]
+        except:
+            print("GROUPING ERROR: grouping {} does not exist.".format(grp))
     
     def update_block_with_attribute(self, blockId, att):
         block = self.get_block(blockId)
         block.add_attribute(att)
         self.block_contents[blockId] = block
     
-    # ====== Quantifiers and operators =======
+    # ===================== Attributes =====================
     def add_attribute(self, blockName, blockIndices, att):
         normName = self.normalize_name(blockName, blockIndices)
         blockId = self.get_brick_id(normName)
@@ -287,47 +310,48 @@ class QBF:
     def add_attributes_grp(self, grp, att):
         if grp not in self.groupings:
             print("GROUPING ERROR: grouping name {} is not defined".format(grp))
+            exit()
         else:
             for block_id in self.groupings[grp]:
                 self.update_block_with_attribute(block_id, att)
                 
-    # ====== Final block ========
+    # =================== Final block ======================
     def save_final_block(self, name, indices):
         normName = self.normalize_name(name, indices)
         blockId = self.get_brick_id(normName)
         self.final = blockId
     
-    # ====== Output QCIR ========
-    def get_QCIR_string(self, list_form=[]):
+    # ===================== Outputs ========================
+
+    # _______________________ QCIR _________________________
+
+    """
+        Generates a string with the formula written in QCIR.
+    """
+    def get_QCIR_string(self):
         if not self.QCIR_str:
-            self.QCIR_str = self.generate_QCIR()
+            self.generate_QCIR()
         return self.QCIR_str
 
     def generate_QCIR(self):
 
         # opening line
-        in_qcir_str = "#QCIR-14\n"
+        in_qcir_str = "#QCIR-G14\n"
 
-        # prenex QCIR
-        if self.format == "circuit-prenex" or self.format == "CNF":
-            final = self.final
-            final_contents = self.block_contents[final].get_body()
-            
-            # add quantifiers:
-            prefix = [self.block_contents[final_contents[0]]]
-            for brick in prefix:
-                in_qcir_str += self.process_quant_block(brick)
+        final = self.final
+        final_contents = self.block_contents[final].get_body()
+        
+        # add quantifiers:
+        prefix = [self.block_contents[final_contents[0]]]
+        for brick in prefix:
+            in_qcir_str += self.process_quant_block(brick)
 
-            # add output gate
-            in_qcir_str += "output({})\n".format(final_contents[1])
+        # add output gate
+        in_qcir_str += "output({})\n".format(final_contents[1])
 
-            # add gates
-            gates = [self.block_contents[final_contents[1]]]
-            in_qcir_str += self.get_gates_str_list(gates)
-
-        # non-prenex QCIR
-        else:
-            print("NON-prenex case has not been yet implemented!")
+        # add gates
+        gates = [self.block_contents[final_contents[1]]]
+        in_qcir_str += self.get_gates_str_list(gates)
 
         self.QCIR_str = in_qcir_str
         return in_qcir_str
@@ -364,8 +388,13 @@ class QBF:
     def get_gates_str_list(self, gates):
         gates_str_list = []
         gate_str = ""
+        processed = set()
         while gates:
             g = gates.pop(0)
+            if g.get_name() in processed:
+                continue
+            else:
+                processed.add(g.get_name())
             if g.get_attribute_str() == "None":
                 gate_str = str(g.get_id()) + " = " + "or" + "("
             else:
@@ -385,18 +414,41 @@ class QBF:
             return_str += gate_str
         return return_str
 
-    # ===== Output QDIMACS ======
+    # __________________ Non-prenex QCIR ____________________
+    """
+        Generates a string with the formula written in non-prenex QCIR.
+    """
+    def get_non_prenex_QCIR_string(self):
+        if not self.non_prenex_QCIR_str:
+            self.non_prenex_QCIR_str = self.generate_non_prenex_QCIR()
+        return self.QCIR_str
+
+    def generate_non_prenex_QCIR(self):
+        return "Non-prenex QCIR not implemented yet."
+
+    # _______________________ QDIMACS _______________________
     def get_QDIMACS_string(self):
+        if self.format == Format.CNF:
+            if not self.QDIMACS_str:
+                self.generate_QDIMACS_from_prenex_QCIR()
+            return self.QDIMACS_str
 
-        if self.format == "CNF":
-            return self.generate_QDIMACS_from_prenex_QCIR()
+        elif self.format == Format.circuit_PRENEX:
+            print("Using GhostQ converter...")
+            f1 = open("input.qcir", "w")
+            f2 = open("output.qdimacs", "w")
+            f2.close()
+            f1.write(self.get_QCIR_string())
+            f1.close()
+            system("python2 qcir-to-qdimacs.py input.qcir -o output.qdimacs --reclim 25000")
+            f2 = open("output.qdimacs", "r")
+            self.QDIMACS_str = f2.read()
+            f2.close()
+            remove("input.qcir")
+            remove("output.qdimacs")
+            return self.QDIMACS_str
 
-        elif self.format == "circuit-prenex":
-            print("Use GhostQ converter?")
-            # 1. generate QCIR
-            # 2. call GhostQ
-
-        else:
+        elif self.format == Format.circuit_NON_PRENEX:
             print("Prenexing not yet supported!")
     
     def generate_QDIMACS_from_prenex_QCIR(self):
@@ -404,7 +456,6 @@ class QBF:
         if not self.QCIR_str:
             self.generate_QCIR()
         
-       
         split_QCIR = self.QCIR_str.splitlines()
         qdimacs_str = ""
         currentQuant = ""
@@ -462,16 +513,33 @@ class QBF:
         lits = line[p1+1:p2]
         return lits.split(", ")
         
-    # ====== EXTRA methods ======    
-    def evaluate(self, expr, extra_values={}):
-        variables = [var for var in self.values] + [var for var in extra_values]
-        assigned_values = [val for val in self.values.values()] + [val for val in extra_values.values()]
+    # ================= Additional methods =================
+
+    """
+        Evaluates the expression expr bringing into scope the existing
+        values. Additional valued variables can be added in extraValues.
+    """
+    def evaluate(self, expr, extraValues={}):
+        variables = [var for var in self.values] + [var for var in extraValues]
+        assigned_values = [val for val in self.values.values()] + [val for val in extraValues.values()]
         pairs = zip(variables, assigned_values)
         for p in pairs:
             assignment = "{} = {}".format(p[0], p[1])
-            exec(assignment)
-        return eval(expr)
-    
+            try:
+                exec(assignment)
+            except:
+                print("EVALUATION ERROR: unable to execute {}".format(assignment))
+                exit()
+
+        try: 
+            return eval(expr)
+        except:
+            print("EVALUATION ERROR: unable to evaluate {}".format(expr))
+            exit()
+
+    """
+        Normalizes a variable name given some indices and valued indices.
+    """
     def normalize_name(self, varName, varIndices, valuedIndices={}):
         varName = varName + '('
         for index in varIndices:
@@ -479,6 +547,10 @@ class QBF:
         varName = varName + ' )'
         return varName
 
+    """
+        Iterates over a list of conditions, generating all possible tuples of values
+        for the given indices.
+    """
     def iterate(self, conditions, extra_valued_indices={}):
         stack = [[{}, 0]]
         while stack:
@@ -505,8 +577,9 @@ class QBF:
             else:
                 yield valuedIndices
 
-    
-        
+    """
+        Substitues indices for values.
+    """    
     def substitute(self, indices, values, extra_values={}):
         subs = []
         for ix in indices:
@@ -520,12 +593,18 @@ class QBF:
                 subs.append(int(ix))
         return subs
     
+    """
+        Checks whether a certain name is already used for a block or a variable.
+    """
     def is_defined(self, name):
         return (name in self.variables) or (name in self.blocks)
     
+    """
+        Prints the internal representation of the formula
+    """
     def print_formula(self):
         my_formula = "========== Printed QBF ==========\n"
-        my_formula = my_formula + "Printing the formula of the family {}, defined in {} format, for the VALUES:\n".format(self.get_name(), self.format_in_string()) 
+        my_formula = my_formula + "Printing the formula of the family {}, defined in {} format, for the VALUES:\n".format(self.get_name(), self.get_format_str()) 
         my_formula = my_formula + "\n"
         for val in ["    {} = {};\n".format(param.get_name(), self.values[param.get_name()]) for param in self.get_parameters()]:
             my_formula = my_formula + val

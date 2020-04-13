@@ -1,4 +1,4 @@
-value: t = 4;
+value: t = 0;
 
 name: KBKF;
 format: CNF;
