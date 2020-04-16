@@ -236,12 +236,24 @@ def generate(input_file, internal, output_formats):
     parse = parser_obj.parse
 
     # Read input definition file
-    f = open(input_file, "r")
+    try:
+        f = open(input_file, "r")
+    except:
+        print("FILE ERROR: the input file {} does not exist or could not be opened.".format(input_file))
+        exit()
     s = f.read()
     f.close()
 
     # Parse the definition and get a QBF object with the internal repr.
-    formula = parse(s)
+    try:
+        formula = parse(s)
+    except Exception as e:
+        s = str(e)
+        #print(s)
+        start = s.find("at line")
+        finish = s.find("Expected one")
+        print("PARSING ERROR: invalid syntax {}".format(s[start:finish-1]))
+        exit()
 
     # Output the formula
     if internal:
@@ -256,7 +268,7 @@ def generate(input_file, internal, output_formats):
         elif output[0] == "-QCIR":
             formula_str = formula.get_QCIR_string()
         elif output[0] == "-non-prenex-QCIR":
-            formula_str = formula.get_QCIR_string() # non-prenex is not ready yet
+            formula_str = formula.get_non_prenex_QCIR_string()
 
         if outp == "-stdIO":
             print("")
@@ -287,9 +299,11 @@ def read_arguments():
             current_format[0] = arg
         elif current_format[0]:
             current_format[1] = arg
+            outputs.append(current_format)
+            current_format = [[], []]
         else:
             print("Invalid arguments: {}".format(arg))
-            return
+            exit()
         
     if current_format[0]:
         if not current_format[1]:
@@ -297,7 +311,8 @@ def read_arguments():
         outputs.append(current_format)   
 
     if len(outputs) == 0 and not internal:
-        print("No valid outputs specified!")
+        print("Invalid arguments")
+        exit()
 
     return input_file, internal, outputs
 
@@ -312,10 +327,10 @@ def run_generator():
 
     # Preliminary check of arguments:
     if len(argv) <= 1:
-        print("    Missing arguments!")
+        print("Missing arguments!")
         return
-    elif len(argv) > 9:
-        print("    Too many arguments!")
+    elif len(argv) > 10:
+        print("Too many arguments!")
         return
     elif len(argv) == 2 and argv[1] in ["-help", "--help", "-h", "--h"]:
         print_help()

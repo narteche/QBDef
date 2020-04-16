@@ -113,6 +113,7 @@ class QBF:
 
         self.QCIR_str = None
         self.QDIMACS_str = None
+        self.non_prenex_QCIR_str = None
     
     # ======================== Name ========================
     def get_name(self):
@@ -329,9 +330,14 @@ class QBF:
         Generates a string with the formula written in QCIR.
     """
     def get_QCIR_string(self):
-        if not self.QCIR_str:
-            self.generate_QCIR()
-        return self.QCIR_str
+        if self.format == Format.CNF or self.format == Format.circuit_PRENEX:
+            if not self.QCIR_str:
+                self.generate_QCIR()
+            return self.QCIR_str
+        elif self.format == Format.circuit_NON_PRENEX:
+            if not self.non_prenex_QCIR_str:
+                self.generate_non_prenex_QCIR()
+            return self.non_prenex_QCIR_str
 
     def generate_QCIR(self):
 
@@ -380,6 +386,8 @@ class QBF:
                 block = self.block_contents[ref]
                 body = block.get_body()
                 sub_list = self.to_str_list(body)
+                sub_list = sub_list.split(",")
+                sub_list = sub_list[:-1]
                 for lit in sub_list:
                     lit_int = int(lit)
                     str_list += str(sign*lit_int) + ", "
@@ -419,6 +427,10 @@ class QBF:
         Generates a string with the formula written in non-prenex QCIR.
     """
     def get_non_prenex_QCIR_string(self):
+        if self.format == Format.CNF or self.format == Format.circuit_PRENEX:
+            print("OUTPUT ERROR: Non-prenex QCIR output format unavailable for prenex formulae.")
+            exit()
+
         if not self.non_prenex_QCIR_str:
             self.non_prenex_QCIR_str = self.generate_non_prenex_QCIR()
         return self.QCIR_str
@@ -434,7 +446,6 @@ class QBF:
             return self.QDIMACS_str
 
         elif self.format == Format.circuit_PRENEX:
-            print("Using GhostQ converter...")
             f1 = open("input.qcir", "w")
             f2 = open("output.qdimacs", "w")
             f2.close()

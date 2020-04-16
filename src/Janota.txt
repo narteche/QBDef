@@ -1,0 +1,63 @@
+value: n = 1000;
+
+name: Janota Formulae;
+format: CNF;
+
+parameters: {
+    n : int, `n >= 1`;
+}
+
+variables: {
+    x(i, j) where i, j in 1..n;
+    a(i)    where i in 1..n;
+    b(i)    where i in 1..n;
+    z;
+}
+
+blocks: {
+
+    /* === blocks for quantifers === */
+    
+    define blocks {
+        X := x(i, j);
+    } where i, j in 1..n;
+
+    define block Z := z;
+
+    define blocks grouped in L_Grp {
+        L(i) := a(i), b(i);
+    } where  i in 1..n;
+
+    define block L := all blocks in L_Grp;
+
+    define block Q := X, Z, L;
+
+    block X quantified with E;
+    block Z quantified with A;
+    block L quantified with E;
+
+    /* ==== blocks for matrix ==== */
+
+    define blocks grouped in B_grp {
+        B1(i, j) := x(i, j), z, a(i);
+        B2(i, j) := -x(i, j), z, b(i);
+    } where i, j in 1..n;
+
+    define blocks grouped in Or_grp {
+        A := -a(i);
+        B := -b(i);
+    } where i in 1..n;
+
+
+    define block F := all blocks in B_grp, all blocks in Or_grp;
+    all blocks in Or_grp operated with OR;
+    all blocks in B_grp operated with OR;
+
+    block F operated with AND;
+
+    /* define the output block */
+    define block Phi := Q, F;
+
+}
+
+output block: Phi;
