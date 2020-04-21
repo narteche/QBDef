@@ -1,5 +1,3 @@
-value: n = 10;
-
 name: QParity;
 format: circuit-prenex;
 

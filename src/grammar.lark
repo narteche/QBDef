@@ -1,4 +1,4 @@
-start: value* formula_family -> return_formula
+start: value* formula_family? -> return_formula
 
 value : "value:" NAME "=" expression ";" -> handle_value
 

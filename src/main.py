@@ -10,6 +10,7 @@ except NameError:
     pass
 
 verbose = False
+formula = QBF()
 
 #==============================================================================
 #=============================== Traversal Class ==============================
@@ -27,7 +28,10 @@ class TraverseTree(Transformer):
 
     """ Creates an empty QBF object that will be updated as parsing proceeds """
     def __init__(self):
-        self.formula = QBF()
+        if formula:
+            self.formula = formula
+        else:
+            self.formula = QBF()
     
     """ Handles a value assignment such as 'value: k = 10;' """
     def handle_value(self, name, expr):
@@ -228,12 +232,33 @@ class TraverseTree(Transformer):
 #=============================== Script functions =============================
 #==============================================================================
 
-def generate(input_file, internal, output_formats):
+def generate(input_file, values_file, internal, output_formats):
     # Generate the parsing function from the grammar and the traversal class
     grammar_file = open("grammar.lark", "r")
     grammar = grammar_file.read()
     parser_obj = Lark(grammar, parser='lalr', transformer=TraverseTree())
     parse = parser_obj.parse
+
+    # Read values file
+    try:
+        f = open(values_file, "r")
+    except:
+        print("FILE ERROR: the values file {} does not exist or could not be opened.".format(values_file))
+        exit()
+    v = f.read()
+    f.close()
+
+    # Parse values:
+    try:
+        formula = parse(v)
+    except Exception as e:
+        s = str(e)
+        #print(s)
+        start = s.find("at line")
+        finish = s.find("Expected one")
+        print("PARSING ERROR: invalid syntax when parsing the values {}".format(s[start:finish-1]))
+        exit()
+
 
     # Read input definition file
     try:
@@ -252,7 +277,7 @@ def generate(input_file, internal, output_formats):
         #print(s)
         start = s.find("at line")
         finish = s.find("Expected one")
-        print("PARSING ERROR: invalid syntax {}".format(s[start:finish-1]))
+        print("PARSING ERROR: invalid syntax when parsing the definition {}".format(s[start:finish-1]))
         exit()
 
     # Output the formula
@@ -282,10 +307,11 @@ def generate(input_file, internal, output_formats):
 def read_arguments():
     global verbose
     input_file = argv[1]
+    values_file = argv[2]
     internal = False
     outputs = []
     current_format = [[], []]
-    for arg in argv[2::]:
+    for arg in argv[3::]:
         if arg == "-internal":
             internal = True
         elif arg == "-verbose":
@@ -314,7 +340,7 @@ def read_arguments():
         print("Invalid arguments")
         exit()
 
-    return input_file, internal, outputs
+    return input_file, values_file, internal, outputs
 
 def print_help():
     print("")
@@ -329,7 +355,7 @@ def run_generator():
     if len(argv) <= 1:
         print("Missing arguments!")
         return
-    elif len(argv) > 10:
+    elif len(argv) > 11:
         print("Too many arguments!")
         return
     elif len(argv) == 2 and argv[1] in ["-help", "--help", "-h", "--h"]:
@@ -337,8 +363,8 @@ def run_generator():
         return
 
     # Process arguments:
-    input_file, internal, output_formats  = read_arguments()
-    generate(input_file, internal, output_formats)
+    input_file, values_file, internal, output_formats  = read_arguments()
+    generate(input_file, values_file,  internal, output_formats)
 
 run_generator()
 

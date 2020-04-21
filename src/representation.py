@@ -82,6 +82,9 @@ class Block:
             return("None")
         return str(self.blockAtt.value)
 
+    def get_attribute(self):
+        return self.blockAtt
+
     def has_attribute(self):
         if self.blockAtt:
             return True
@@ -330,14 +333,13 @@ class QBF:
         Generates a string with the formula written in QCIR.
     """
     def get_QCIR_string(self):
+        if self.format == Format.circuit_NON_PRENEX:
+            print("FORMAT ERROR: the given formula is in non-prenex format; the only possible output is non-prenex QCIR.")
+            exit()
         if self.format == Format.CNF or self.format == Format.circuit_PRENEX:
             if not self.QCIR_str:
                 self.generate_QCIR()
             return self.QCIR_str
-        elif self.format == Format.circuit_NON_PRENEX:
-            if not self.non_prenex_QCIR_str:
-                self.generate_non_prenex_QCIR()
-            return self.non_prenex_QCIR_str
 
     def generate_QCIR(self):
 
@@ -433,13 +435,67 @@ class QBF:
 
         if not self.non_prenex_QCIR_str:
             self.non_prenex_QCIR_str = self.generate_non_prenex_QCIR()
-        return self.QCIR_str
+        return self.non_prenex_QCIR_str
 
     def generate_non_prenex_QCIR(self):
-        return "Non-prenex QCIR not implemented yet."
+        preamble = "#QCIR-G14\n" + "output({})\n".format(self.final)
+
+        gates = [self.block_contents[self.final]]
+        gates_str_list = []
+        gate_str = ""
+        processed = set()
+        while gates:
+            g = gates.pop(0)
+            
+            if g.get_name() in processed:
+                continue
+            else:
+                processed.add(g.get_name())
+
+            gate_contents = g.get_body()
+
+            if len(gate_contents) == 2 and (gate_contents[0] in self.block_contents):
+                att = self.block_contents[gate_contents[0]].get_attribute()
+                if att == Quantifier.FORALL or att == Quantifier.EXISTS:
+                    q_vars = self.to_str_list([gate_contents[0]])
+                    processed.add(gate_contents[0])
+                    gate_str = "{} = {}({}; {})\n".format(self.blocks[g.get_name()], att.value, q_vars[:-2], gate_contents[1])
+                    gates_str_list.append(gate_str)
+                    gates.append(self.block_contents[gate_contents[1]])
+                    continue
+
+            if g.get_attribute_str() == "None":
+                gate_str = str(g.get_id()) + " = " + "or" + "("
+            else:
+                gate_str = str(g.get_id()) + " = " + g.get_attribute_str() + "("
+            for sub_gate in g.get_body():
+                gate_str += str(sub_gate) + ", "
+                if abs(sub_gate) in self.block_contents:
+                    gates.append(self.block_contents[abs(sub_gate)])
+            if g.get_body():
+                gate_str = gate_str[:-2] + ")\n"
+            else:
+                gate_str += ")\n"
+
+            gates_str_list.append(gate_str)
+
+        gates_str_list.reverse()
+        return_str = ""
+        for gate_str in gates_str_list:
+            return_str += gate_str
+        
+        return preamble + return_str
+
+
+
+
+
 
     # _______________________ QDIMACS _______________________
     def get_QDIMACS_string(self):
+        if self.format == Format.circuit_NON_PRENEX:
+            print("FORMAT ERROR: the given formula is in non-prenex format; the only possible output is non-prenex QCIR.")
+            exit()
         if self.format == Format.CNF:
             if not self.QDIMACS_str:
                 self.generate_QDIMACS_from_prenex_QCIR()
