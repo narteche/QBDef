@@ -1,0 +1,76 @@
+start: value* formula_family? -> return_formula
+
+value : "value:" NAME "=" expression ";" -> handle_value
+
+formula_family : name format parameters? variables blocks output_block
+
+name: "name:" FAMILY_NAME ";" -> set_name
+
+format: "format:" FORMAT ";" -> set_format
+
+parameters: "parameters:" "{" parameter_declaration+ "}"
+
+parameter_declaration: NAME ":" PARAM_TYPE ("," expression)* ";" -> add_parameter 
+
+variables : "variables:" "{" variable_declaration+ "}"
+
+variable_declaration: NAME ("(" indices ")" ("where" index_range ("," index_range)*)?)? ";" -> add_variable
+
+indices : INDEX ("," INDEX)*
+
+index_range : indices "in" (expression | INDEX | NAME) ".." (expression | INDEX | NAME)
+
+blocks: "blocks:" "{" block_definition (block_definition | operator_declaration | quantifier_declaration)+ "}"
+
+block_definition:   "define block" single_block_def -> add_blocks
+                  | "define blocks" grouping? "{" single_block_def+ "}" conditions? ";" -> add_blocks
+
+single_block_def: BLOCK_NAME ("(" indices ")")? ":=" block_body ";"
+
+block_body: brick ("," brick)*
+
+brick:  /all blocks in/ BLOCK_NAME
+       | NEGATION? BLOCK_NAME ("(" indices ")")?
+       | NEGATION? NAME ("(" indices ")")?
+
+grouping: "grouped in" BLOCK_NAME
+
+conditions: "where" condition ("," condition)*
+
+condition: index_range | assignment | other_condition
+
+assignment: INDEX "=" expression
+
+other_condition: expression
+             
+quantifier_declaration:   "block" BLOCK_NAME ("(" indices ")")? "quantified with" QUANTIFIER ";" -> add_attributes
+						| "blocks" BLOCK_NAME ("(" indices ")")? ("," BLOCK_NAME ("(" indices ")")?)+ "quantified with" QUANTIFIER ";" -> add_attributes
+						| "all blocks in" BLOCK_NAME "quantified with" QUANTIFIER ";" -> add_attribute_to_grouping
+
+
+operator_declaration:   "block" BLOCK_NAME ("(" indices ")")? "operated with" OPERATOR ";" -> add_attributes
+                      | "blocks" BLOCK_NAME ("(" indices ")")? ("," BLOCK_NAME ("(" indices ")")?)+ "operated with" OPERATOR ";" -> add_attributes
+                      | "all blocks in" BLOCK_NAME "operated with" OPERATOR ";" -> add_attribute_to_grouping
+
+output_block: "output block:" BLOCK_NAME ("(" indices ")")? ";" -> add_final_block
+
+NAME : /(?!all blocks in)[a-z]([_?a-zA-Z0-9])*/
+FAMILY_NAME : /[^;]+/ // old version: /[a-zA-Z]([ ?_?a-zA-Z0-9])*(?=;)/
+FORMAT : "CNF" | "circuit-prenex" | "circuit-nonprenex"
+PARAM_TYPE : "int" | "str" | "float" | "list" | "bool" | "other" // the names used by Python
+?expression : /[0-9]+/ | "`" /[^`]+/ "`" //| /[^`,;\]]+/
+INDEX : /[a-z][_?a-zA-Z0-9]*/ | /[0-9]+/
+BLOCK_NAME : /[A-Z]([_?a-zA-Z0-9])*/
+NEGATION : "-"
+QUANTIFIER : "E" | "A"
+OPERATOR: "AND" | "OR" | "XOR"
+COMMENT: /\/\*((\*[^\/])|[^*])*\*\//
+
+
+
+%import common.NUMBER
+%import common.WS_INLINE
+%import common.NEWLINE
+%ignore WS_INLINE
+%ignore NEWLINE
+%ignore COMMENT

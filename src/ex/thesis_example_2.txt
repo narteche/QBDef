@@ -1,0 +1,59 @@
+name: Example 2;
+format: CNF;
+
+parameters: {
+    n : int, `n >= 1`;
+}
+
+variables: {
+    x(i)    where i in 1..n;
+    y(i)    where i in 1..n;
+}
+
+blocks: {
+
+    /* === blocks for quantifers === */
+    
+    define blocks grouped in QX {
+        QX(i) := x(i);
+    } where i in 1..n;
+
+    define blocks grouped in QY {
+        QY(i) := y(i);
+    } where i in 1..n;
+
+    define blocks {
+        QXY(i) := QX(i), QY(i);
+    } where i in 1..n;
+
+    define blocks {
+        Q := QXY(i);
+    } where i in 1..n;
+
+    all blocks in QX quantified with E;
+    all blocks in QY quantified with A;
+
+    /* ==== blocks for matrix ==== */
+
+    define blocks {
+        X := -x(i);
+    } where i in 1..n;
+
+    define blocks grouped in XY {
+        XY(i) := x(i), y(i);
+    } where i in 1..n;
+
+    define blocks {
+        F := X, XY(i);
+    } where i in 1..n;
+
+    block X operated with OR;
+    all blocks in XY operated with OR;
+    block F operated with AND;
+
+    /* define the output block */
+    define block Phi := Q, F;
+
+}
+
+output block: Phi;

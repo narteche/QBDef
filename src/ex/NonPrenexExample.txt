@@ -1,0 +1,31 @@
+name: Non-Prenex Example;
+format: circuit-nonprenex;
+
+
+variables: {
+    x;
+    z;
+}
+
+blocks: {
+
+    define block G1 := x, z;
+    block G1 operated with XOR;
+
+    define block XQ := x;
+    block XQ quantified with E;
+
+    define block ZQ := z;
+    block ZQ quantified with A;
+
+    define block G2 := XQ, G1;
+    define block G3 := z, G2;
+    block G3 operated with XOR;
+
+    define block G4 := G2, G3;
+    block G4 operated with AND;
+
+    define block G5 := ZQ, G4;
+}
+
+output block: G5;
