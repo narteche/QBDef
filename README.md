@@ -11,8 +11,9 @@ The tool requires:
 
 1. Python parsing library [lark](https://github.com/lark-parser/lark): `$ pip install lark-parser`
 2. Python 2 (the tool runs on Python 3 but Python 2 is needed to run some third-party code; make sure you have it installed, as, for instance, Ubuntu 20.04 no longer has it by default).
+3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDeF/blob/master/qcir-to-qdimacs.py). The orignal source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files.
 
-You can run the tool by executing the [`QBDeF.pyc`](https://github.com/lark-parser/lark) script on a terminal:
+You can run the tool by executing the [`QBDeF.pyc`](https://github.com/alephnoell/QBDeF/blob/master/QBDeF.py) script on a terminal:
 
 ```
 python QBDeF.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
