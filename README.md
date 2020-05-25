@@ -12,7 +12,7 @@ The tool requires the Python parsing library lark as well as Python2 (make sure 
 You can run the tool by executing the `QBDeF.pyc` script on a terminal:
 
 ```
-python QBDeF.pyc input_file [-internal] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
+python QBDeF.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
 ```
 
 For example, if `my_def.txt` is your QBF family definition and `values.txt` is the file with the values for the parameters,
@@ -23,18 +23,21 @@ python QBDeF.pyc my_def.txt values.txt -QCIR
 
 outputs the QCIR format instance on terminal. 
 
+The possible options are:
+
+* `-QCIR    [output_file]`: outputs a QCIR, if no output file is provided, it is printed in the standard output.
+* `-QDIMACS [output_file]`: outputs a QDIMACS, if no output file is provided, it is printed in the standard output.
+* `-non-prenex-QCIR [output_file]`: outputs a non-prenex QCIR. This feature is experimental.
+* `-internal`             : outputs a human-readable version of the internal representation of the QBF.
+* `-verbose`              : prints messages while parsing and processing the definition.
 
 # The formal language
 
-Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters.
-
-The `/examples` folder contains examples of formula families written in the formal language. A cheatsheet is also provided in the same forlder.
+Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters. The `/examples` folder contains examples of formula families written in the formal language. A cheatsheet is also provided in the same forlder.
 
 # Contents of the repository
 
-The content of each folder is:
+* `QBDeF.pyc`: Python script to run the tool.
+* `/examples`: definitions in the formal language; contains a brief introductory cheatsheet to the formal language.
+* `/src`: source code and development files.
 
-* `/grammar`: grammar and formal versions of formulas.
-* `/progress_documentation`: documents containing information about the development of the project.
-* `/references`: some of the articles used for the documentation of the project.
-* `/src`: internal code and tools used for the development of the generators - to be added -.
