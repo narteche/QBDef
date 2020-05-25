@@ -1,12 +1,36 @@
-# Very General QBF Generator (VGG)
-A very general generator to create QBF instances in popular formats given the formal definition of a family of formulas.
+# QBF Family Definition Processor and Generator (QBDeF)
+A tool to write QBF family defintions and obtain instances in QCIR or QDIMACS.
 
 # Description
-This repository contains the material realted to the project of developing a program capable of reading formal definitions of QBF formulae families to generate actual instances in popular formats such as QCIR o QDIMACS.
+QBDeF is a computer-tool written in Python designed to make the generation of QBF instances easier. The tool gets as input the formal defintion of a formula family in terms of some parameters and returns instances of it for specific values in the QCIR or QDIMACS formats.
+
+# How to use it
+The tool is written in Python, so it should work on every operating system. However, if you are using Windows, we recommend to run the tool using the Windows Subsystem for Liunx (WSL).
+
+The tool requires the Python parsing library lark as well as Python2 (make sure you have it installed, Ubuntu 20.04 no longer has it by default).
+
+You can run the tool by executing the `QBDeF.pyc` script on a terminal:
+
+```
+python QBDeF.pyc input_file [-internal] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
+```
+
+For example, if `my_def.txt` is your QBF family definition and `values.txt` is the file with the values for the parameters,
+
+```
+python QBDeF.pyc my_def.txt values.txt -QCIR
+```
+
+outputs the QCIR format instance on terminal. 
+
+
+# The formal language
 
 Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters.
 
-# Contents
+The `/examples` folder contains examples of formula families written in the formal language. A cheatsheet is also provided in the same forlder.
+
+# Contents of the repository
 
 The content of each folder is:
 
