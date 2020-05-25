@@ -1,4 +1,0 @@
-1. Generate QCIR output.
-2. Clean code and maybe comment.
-3. Study options for QCIR-to-QDIMACS transformation.
-4. Error messages.
