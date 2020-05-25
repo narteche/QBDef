@@ -7,9 +7,12 @@ QBDeF is a computer-tool written in Python designed to make the generation of QB
 # How to use it
 The tool is written in Python, so it should work on every operating system. However, if you are using Windows, we recommend to run the tool using the Windows Subsystem for Liunx (WSL).
 
-The tool requires the Python parsing library lark as well as Python2 (make sure you have it installed, Ubuntu 20.04 no longer has it by default).
+The tool requires:
 
-You can run the tool by executing the `QBDeF.pyc` script on a terminal:
+1. Python parsing library [lark](https://github.com/lark-parser/lark): `$ pip install lark-parser`
+2. Python 2 (the tool runs on Python 3 but Python 2 is needed to run some third-party code; make sure you have it installed, as, for instance, Ubuntu 20.04 no longer has it by default).
+
+You can run the tool by executing the [`QBDeF.pyc`](https://github.com/lark-parser/lark) script on a terminal:
 
 ```
 python QBDeF.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
