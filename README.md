@@ -1,4 +1,4 @@
-# QBF Family Definition Processor and Generator (QBDeF)
+# QBDeF: A QBF Family Definition Processor and Generator
 A tool to write QBF family defintions and obtain instances in QCIR or QDIMACS.
 
 # Description
