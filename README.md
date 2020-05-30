@@ -1,8 +1,8 @@
-# QBDeF: A QBF Family Definition Processor and Generator
+# QBDef: A QBF Family Definition Processor and Generator
 A tool to write QBF family defintions and obtain instances in QCIR or QDIMACS.
 
 # Description
-QBDeF is a computer-tool written in Python designed to make the generation of QBF instances easier. The tool gets as input the formal defintion of a formula family in terms of some parameters and returns instances of it for specific values in the QCIR or QDIMACS formats.
+QBDef is a computer-tool written in Python designed to make the generation of QBF instances easier. The tool gets as input the formal defintion of a formula family in terms of some parameters and returns instances of it for specific values in the QCIR or QDIMACS formats.
 
 # How to use it
 The tool is written in Python, so it should work on every operating system. However, if you are using Windows, we recommend to run the tool using the Windows Subsystem for Liunx (WSL).
@@ -13,7 +13,7 @@ The tool requires:
 2. Python 2 (the tool runs on Python 3 but Python 2 is needed to run some third-party code; make sure you have it installed, as, for instance, Ubuntu 20.04 no longer has it by default).
 3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDeF/blob/master/qcir-to-qdimacs.py). The orignal source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files.
 
-You can run the tool by executing the [`QBDeF.pyc`](https://github.com/alephnoell/QBDeF/blob/master/QBDeF.py) script on a terminal:
+You can run the tool by executing the [`QBDef.pyc`](https://github.com/alephnoell/QBDeF/blob/master/QBDeF.py) script on a terminal:
 
 ```
 python QBDeF.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
@@ -41,7 +41,7 @@ Formula family defintions are written in a formal language parsed by the generat
 
 # Contents of the repository
 
-* `QBDeF.pyc`: Python script to run the tool.
+* `QBDef.pyc`: Python script to run the tool.
 * `/examples`: definitions in the formal language; contains a brief introductory cheatsheet to the formal language.
 * `/src`: source code and development files.
 
