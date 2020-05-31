@@ -1,0 +1,74 @@
+name: Chen Type 1;
+format: CNF;
+
+parameters: {
+    n : int, `n >= 1`;
+}
+
+variables: {
+    x1(i, j, k)       where i in 0..n, j, k in 0..1;
+    x2(i, j, k)       where i in 1..n, j, k in 0..1;
+    y(i)			  where i in 1..n;
+}
+
+
+blocks:  {
+
+    /*  ==== blocks for quantifers ==== */
+
+    define blocks grouped in X1 {
+        X1(i) := x1(i, j, j);
+    } where i in 0..n, j, k in 0..1;
+
+    define blocks grouped in X2 {
+        X2(i) := x2(i, j, j);
+    } where i in 1..n, j, k in 0..1;
+
+    define blocks grouped in Y {
+    	Y(i) := y(i);
+    } where i in 1.. n;
+
+    define blocks grouped in X2YX1 {
+    	X2YX1(i) := X2(i), Y(i), X1(i);
+    } where i in 1..n;
+
+    define block Q := X1(0), all blocks in X2YX1;
+
+    all blocks in X1 quantified with E;
+    all blocks in X2 quantified with E;
+    all blocks in Y  quantified with A;
+
+
+    /* ==== blocks for formula ==== */
+
+    define blocks grouped in B1 {
+    	B1(j, k) := -x1(0, j, k);
+    } where j, k in 0..1;
+
+    define blocks {
+    	B2 := x1(n, j, 0), x1(n, j, 1);
+    } where j in 0..1;
+
+    block B2 operated with OR;
+
+    define blocks grouped in H {
+    	H(i, j) := -x2(i, 0, k), -x2(i, 1, l), x1(s, j, 0), x1(s, j, 1);
+    } where i in 1..n, j, k, l in 0..1, s = `i - 1`;
+
+    all blocks in H operated with OR;
+
+    define blocks grouped in T {
+    	T1(i) := -x1(i, 0, k), y(i),  x2(i, 0, k);
+    	T2(i) := -x1(i, 1, k), -y(i), x2(i, 1, k);
+    } where i in 1..n, k in 0..1;
+
+    all blocks in T operated with OR;
+
+    define block F := all blocks in B1, B2, all blocks in H, all blocks in T;
+
+    block F operated with AND; 
+
+    define block Phi := Q, F;
+}
+
+output block: Phi;

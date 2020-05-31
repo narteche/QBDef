@@ -1,0 +1,75 @@
+name: Chen Type 2;
+format: circuit-prenex;
+
+parameters: {
+    n : int, `n >= 1`;
+}
+
+variables: {
+    x(i)       where i in 1..n;
+    y(i)	   where i in 1..n;
+}
+
+
+blocks:  {
+
+    /*  ==== blocks for quantifers ==== */
+
+    define blocks grouped in X {
+        X(i) := x(i);
+    } where i in 1.. n;
+
+    define blocks grouped in Y {
+    	Y(i) := y(i);
+    } where i in 1.. n;
+
+    all blocks in X quantified with E;
+    all blocks in Y quantified with A;
+
+    define blocks grouped in Qi {
+        Q(i) := X(i), Y(i);
+    } where i in 1..n;
+
+    define block Q := all blocks in Qi;
+
+
+    /* ==== blocks for formula ==== */
+
+    define blocks grouped in Ones0 {
+        Ones(0, i) := -x(i), -y(i);
+    } where i in 1..n;
+   
+    define blocks grouped in Ones1 {
+        Ones(1, i) := x(i), y(i);
+    } where i in 1..n;
+
+    define blocks grouped in Ones2 {
+        Ones(2, i) := x(i), y(i);
+    } where i in 1..n;
+
+    all blocks in Ones0 operated with AND;
+    all blocks in Ones1 operated with XOR;
+    all blocks in Ones2 operated with AND;
+
+    define blocks IsAndAdds {
+        IsAndAdds(i, p, a) := Mu(i, p), Ones(a, k);
+    } where i in 1..n, p, a in 0..2;
+    
+    all blocks in IsAndAdds operated with AND;
+
+    define block Mu(0, 1) := Ones(0, 1);
+    define block Mu(1, 1) := Ones(1, 1);
+    define block Mu(2, 1) := Ones(2, 1);
+
+    define blocks grouped in Mu {
+        Mu(m, i) := IsAndAdds(k-1, p, a);
+    } where m in 0..2, i in 2..n, p in 0..2, a = `(m-p) % 3`;
+
+    define blocks {
+        F := -Mu(s, n);
+    } where s = `n % 3`;
+
+    define block Phi := Q, F;
+}
+
+output block: Phi;

@@ -12,7 +12,7 @@ variables: {
 
 blocks: {
 
-    /* === blocks for quantifers === */
+    /* === Blocks for quantifers === */
     
     define blocks {
         X := x(i);
@@ -25,10 +25,10 @@ blocks: {
     block X quantified with E;
     block Z quantified with A;
 
-    /* ==== blocks for matrix ==== */
+    /* === Blocks for matrix === */
 
+    define block T(2) := x(1), x(2);
     define blocks grouped in T {
-        T(2) := x(1), x(2);
         T(i) := T(s), x(i);
     } where i in 3..n, s = `i-1`;
 
@@ -39,6 +39,7 @@ blocks: {
 
     define block F := Ro1, Ro2;
 
+    block T(2) operated with XOR;
     all blocks in T operated with XOR;
     all blocks in Ro operated with OR;
     block F operated with AND;
