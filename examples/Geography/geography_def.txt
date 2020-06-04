@@ -11,13 +11,16 @@ parameters: {
 variables: {
     p(i, m)    where i in 1..n, m in 0..k;
     q(i, m)    where i in 1..n, m in 1..`k-1`;
+    s(m)       where m in 1..`k+1`;
 }
 
 blocks: {
+
+	/* ==== Blocks for the matrix === */
     
     define blocks grouped in Qp {
-        Qp(m) := p(i, m);
-    } where m in 0..k, `m % 2 == 0`, i in 1..n;
+        Qp(m) := p(i, m), s(m1);
+    } where m in 0..k, `m % 2 == 0`, i in 1..n, m1 = `m + 1`;
 
     define blocks grouped in Qq {
         Qq(m) := q(i, m);
@@ -32,12 +35,24 @@ blocks: {
 
     define block Q := all blocks in Qm, Qp(k);
 
-    /* ==== Blocks for the matrix === */
+    /* -----------------------------------------------------------------------*/
 
-    /* === 1. Validity conditions === */
+
+
+
+
+    /* ==== Blocks for the matrix =========================================== */
+
+    /* === 1. Validity conditions =========================================== */
+
+    /* (a) Initial conditions (no need for blocks) */
+    /* -----------------------------------------------------------------------*/
 
     /* (b) Uniqueness of choice   */
     /* -----------------------------------------------------------------------*/
+
+
+    /* --- Up ---------------------------------------------------*/
 
     define blocks grouped in NotChosenOtherP {
         NotChosenOtherP(i, m) := -p(j, m);
@@ -63,10 +78,13 @@ blocks: {
 
     all blocks in UniqueChoiceP operated with AND;
 
-    define block Up := all blocks in UniqueChoiceP;
+    define blocks grouped in Up {
+        Up(m) := UniqueChoiceP(i, m);
+    } where m in 0..k, `m % 2 == 0`, i in 1..n; 
 
-    block Up operated with AND;
+    all blocks in Up operated with AND;
 
+    /* --- Uq ---------------------------------------------------*/
 
     define blocks grouped in NotChosenOtherQ {
         NotChosenOtherQ(i, m) := -q(j, m);
@@ -92,158 +110,272 @@ blocks: {
 
     all blocks in UniqueChoiceQ operated with AND;
 
-    define block Uq := all blocks in UniqueChoiceQ;
-
-    block Uq operated with AND;
-
-    
-    /* (c) Connectedness */
-    /* -----------------------------------------------------------------------*/
-
-    define blocks grouped in FromAt {
-        FromAtPQ(i, j, m1) := p(i, m1), q(j, m2);
-        FromAtQP(i, j, m1) := q(i, m2), p(j, m3);
-    } where i, j in 1..n, `edges[i-1][j-1] == 1`,
-                           m1 in 0..`k-2`, `m1 % 2 == 0`, 
-                           m2 = `m1 + 1`,
-                           m3 = `m1 + 2`;
-
-    all blocks in FromAt operated with AND;
-
-    define blocks grouped in Connectedness {
-        C(i, j, m) :=  FromAtPQ(i, j, m), FromAtQP(i, j, m);
-    } where i, j in 1..n, `edges[i-1][j-1] == 1`,
-                           m in 0..`k-2`, `m % 2 == 0`;
-
-    all blocks in Connectedness operated with OR;
-
-    define blocks grouped in ConnectedAtMove {
-        ConnectedAtMove(m) := C(i, j, m);
-    } where m in 0..`k-2`, `m % 2 == 0`,
-            i, j in 1..n, `edges[i-1][j-1] == 1`;
-
-    all blocks in ConnectedAtMove operated with OR;
-
-    define block C := all blocks in ConnectedAtMove;
-    block C operated with AND;
-
-
-    /* (d) Single usability */
-    /* -----------------------------------------------------------------------*/
-
-    
-    define blocks grouped in NotUsedAgainP {
-        NotUsedAgainP(i, m) := -p(i, m1);
-    } where i in 1..n, m  in 0..k,  `m % 2 == 0`,
-                       m1 in 0..k, `m1 % 2 == 0`, `m != m1`;
-
-    all blocks in NotUsedAgainP operated with AND;
-
-    define blocks grouped in NotNowAndAgainP {
-        NotNowAndAgainP(i, m) := -p(i, m), NotUsedAgainP(i, m);
-    } where i in 1..n, m in 0..k, `m % 2 == 0`;
-
-    all blocks in NotNowAndAgainP operated with OR;
-
-    define block Sp := all blocks in NotNowAndAgainP;
-    block Sp operated with AND;
-
-
-    define blocks grouped in NotUsedAgainQ {
-        NotUsedAgainQ(i, m) := -q(i, m1);
-    } where i in 1..n, m  in 1..`k-1`,  `m % 2 != 0`,
-                       m1 in 1..`k-1`, `m1 % 2 != 0`, `m != m1`;
-
-    all blocks in NotUsedAgainQ operated with AND;
-
-    define blocks grouped in NotNowAndAgainQ {
-        NotNowAndAgainQ(i, m) := -q(i, m), NotUsedAgainQ(i, m);
+    define blocks grouped in Uq {
+        Uq(m) := UniqueChoiceQ(i, m);
     } where i in 1..n, m in 1..`k-1`, `m % 2 != 0`;
 
-    all blocks in NotNowAndAgainQ operated with OR;
+    all blocks in Uq operated with AND;
 
-    define block Sq := all blocks in NotNowAndAgainQ;
-    block Sq operated with AND;
-
-    /* (e) Overlapping */
+    /* (c) No Overlapping */
     /* -----------------------------------------------------------------------*/
 
-    define blocks grouped in NotUsedP {
-        NotUsedP(i) := -p(i, m);
-    } where i in 1..n, m  in 0..k,  `m % 2 == 0`;
+    /* ---- Op(m) ------------------------------------------------------------*/
 
-    all blocks in NotUsedP operated with AND;
+    define blocks grouped in NotUsedBeforeP_Op {
+        NotUsedBeforeP_Op(i, m) := -p(i, m1);
+    } where i in 1..n, m in 2..k, `m % 2 == 0`, m1 in 0..`m-2`, `m1 % 2 == 0`;
 
-    define blocks grouped in NotUsedQ {
-        NotUsedQ(i) := -q(i, m);
-    } where i in 1..n, m in 1..`k-1`,  `m % 2 != 0`;
+    define blocks grouped in NotUsedBeforeQ_Op {
+        NotUsedBeforeQ_Op(i, m) := -q(i, m1);
+    } where i in 1..n, m in 2..k, `m % 2 == 0`, m1 in 1..`m-1`, `m1 % 2 != 0`;
 
-    all blocks in NotUsedQ operated with AND;
+    all blocks in NotUsedBeforeP_Op operated with AND;
+    all blocks in NotUsedBeforeQ_Op operated with AND;
 
-    define blocks grouped in UsedOnceP {
-        UsedOnceP(i, m) := -p(i, m), NotUsedQ(i);
-    } where i in 1..n, m in 0..k, `m % 2 == 0`;
+    define blocks grouped in NotUsedBeforeP {
+        NotUsedBeforeP(i, m) := NotUsedBeforeP_Op(i, m), NotUsedBeforeQ_Op(i, m);
+    } where i in 1..n, m in 2..k, `m % 2 == 0`;
 
-    define blocks grouped in UsedOnceQ {
-        UsedOnceQ(i, m) := -q(i, m), NotUsedP(i);
-    } where i in 1..n, m in 1..`k-1`,  `m % 2 != 0`;
+    all blocks in NotUsedBeforeP operated with AND;
 
-    all blocks in UsedOnceP operated with OR;
-    all blocks in UsedOnceQ operated with OR;
+    define blocks grouped in OverlapP {
+        OverlapP(i, m) := -p(i, m), NotUsedBeforeP(i, m);
+    } where i in 1..n, m in 2..k, `m % 2 == 0`;
 
-    define block Op := all blocks in UsedOnceP;
-    define block Oq := all blocks in UsedOnceQ;
-    block Op operated with AND;
-    block Oq operated with AND;
+    all blocks in OverlapP operated with OR;
 
-    /* Validity */
+    define blocks grouped in Op {
+        Op(m) := OverlapP(i, m);
+    } where m in 2..k, `m % 2 == 0`, i in 1..n;
+    all blocks in Op operated with AND;
+
+    /* ---- Oq(m) ------------------------------------------------------------*/
+
+    define blocks grouped in NotUsedBeforeP_Oq {
+        NotUsedBeforeP_Oq(i, m) := -p(i, m1);
+    } where i in 1..n, m in 1..`k-1`, `m % 2 != 0`, m1 in 0..`m-1`, `m1 % 2 == 0`;
+
+    define blocks grouped in NotUsedBeforeQ_Oq {
+        NotUsedBeforeQ_Oq(i, m) := -q(i, m1);
+    } where i in 1..n, m in 1..`k-1`, `m % 2 != 0`, m1 in 1..`m-1`, `m1 % 2 != 0`;
+
+    all blocks in NotUsedBeforeP_Oq operated with AND;
+    all blocks in NotUsedBeforeQ_Oq operated with AND;
+
+    define blocks grouped in Special {
+        NotUsedBeforeQ(i, 1) := NotUsedBeforeP_Oq(i, 1);
+    } where i in 1..n;
+    all blocks in Special operated with AND;
+
+    define blocks grouped in NotUsedBeforeQ {
+        NotUsedBeforeQ(i, m) := NotUsedBeforeP_Oq(i, m), NotUsedBeforeQ_Oq(i, m);
+    } where i in 1..n, m in 3..`k-1`, `m % 2 != 0`;
+
+    all blocks in NotUsedBeforeQ operated with AND;
+
+    define blocks grouped in OverlapQ {
+        OverlapQ(i, m) := -q(i, m), NotUsedBeforeQ(i, m);
+    } where i in 1..n, m in 1..`k-1`, `m % 2 != 0`;
+
+    all blocks in OverlapQ operated with OR;
+
+    define blocks grouped in Oq {
+        Oq(m) := OverlapQ(i, m);
+    } where m in 1..`k-1`, `m % 2 != 0`, i in 1..n;
+    all blocks in Oq operated with AND;
+
+    
+    /* (d) Connectedness */
     /* -----------------------------------------------------------------------*/
 
-    define block Vp := p(s, 0), Up, Sp;
-    block Vp operated with AND;
-
-    define block Vq := Uq, Sq, Op, Oq, C;
-    block Vq operated with AND;
-
-
-    /* === Stuckness === */
-    /* -----------------------------------------------------------------------*/
-
-    define blocks grouped in WayOut {
-        EdgeUsed(i, j) := p(j, m1), q(j, m2);
+    define blocks grouped in AdjacentP {
+    	AdjacentP(i, m) := p(j, m);
     } where i, j in 1..n, `edges[i-1][j-1] == 1`,
-                   m1 in 0..`k-2`, `m1 % 2 == 0`,
-                   m2 in 1..`k-1`, `m2 % 2 != 0`;
+    		   m in 2..k, `m % 2 == 0`;
 
-    all blocks in WayOut operated with OR;
+    define blocks grouped in AdjacentQ {
+    	AdjacentQ(i, m) := q(j, m);
+    } where i, j in 1..n, `edges[i-1][j-1] == 1`,
+    		   m in 1..`k-1`, `m % 2 != 0`;
 
-    define blocks {
-        NoWayOutFrom(i) := EdgeUsed(i, j);
-    } where i in 1..n, j in 1..n, `edges[i-1][j-1] == 1`;
+    all blocks in AdjacentP operated with OR;
+    all blocks in AdjacentQ operated with OR;
+
+    define blocks grouped in ConnectedP {
+    	ConnectedP(i, m) := -q(i, m0), AdjacentP(i, m);
+    } where i in 1..n, m in 2..k, `m % 2 == 0`, m0 = `m-1`;
+
+    define blocks grouped in ConnectedQ {
+        ConnectedQ(i, m) := -p(i, m0), AdjacentQ(i, m);
+    } where i in 1..n, m in 1..`k-1`, `m % 2 != 0`, m0 = `m-1`;
+
+    all blocks in ConnectedP operated with OR;
+    all blocks in ConnectedQ operated with OR;
+
+    define blocks grouped in Cp {
+        Cp(m) := ConnectedP(i, m);
+    } where m in 2..k, `m % 2 == 0`, i in 1..n;
+
+    define blocks grouped in Cq {
+        Cq(m) := ConnectedQ(i, m);
+    } where m in 1..`k-1`, `m % 2 != 0`, i in 1..n;
+
+    all blocks in Cp operated with AND;
+    all blocks in Cq operated with AND;
+
+
+    /* === 2. Stuckness ===================================================== */
+
+    define blocks grouped in EdgeUsedP1 {
+        EdgeUsedP(i, j, 1) := p(j, 0);
+    } where i, j in 1..n, `edges[i-1][j-1] == 1`;
+    all blocks in EdgeUsedP1 operated with OR;
+
+    define blocks grouped in EdgeUsedP {
+        EdgeUsedP(i, j, m) := p(j, m1);
+    } where i, j in 1..n, `edges[i-1][j-1] == 1`,
+                   m  in 3..`k+1`, `m  % 2 != 0`,
+                   m1 in 0..`m-3`, `m1 % 2 == 0`;
+
+    all blocks in EdgeUsedP operated with OR;
+
+    define blocks grouped in EdgeUsedQ {
+        EdgeUsedQ(i, j, m) := q(j, m1);
+    } where i, j in 1..n, `edges[i-1][j-1] == 1`,
+                   m  in 1..`k+1`, `m  % 2 != 0`,
+                   m1 in 0..`m-2`, `m1 % 2 != 0`;
+
+    all blocks in EdgeUsedQ operated with OR;
+
+    define blocks grouped in Special2 {
+        EdgeUsed(i, j, 1) := EdgeUsedP(i, j, 1);
+    } where i, j in 1..n, `edges[i-1][j-1] == 1`;
+
+
+    define blocks grouped in EdgeUsed {
+        EdgeUsed(i, j, m) := EdgeUsedP(i, j, m), EdgeUsedQ(i, j, m);
+    } where i in 1..n, j in 1..n, `edges[i-1][j-1] == 1`,
+                       m  in 1..`k+1`, `m  % 2 != 0`;
+
+    all blocks in EdgeUsed operated with OR;
+
+    define blocks grouped in NoWayOutFrom {
+        NoWayOutFrom(i, m) := EdgeUsed(i, j, m);
+    } where i in 1..n, j in 1..n, `edges[i-1][j-1] == 1`, m in 1..`k+1`, `m % 2 != 0`;
+    all blocks in NoWayOutFrom operated with AND;
 
     define blocks grouped in StuckIn {
-        StuckIn(i) := p(i, k), NoWayOutFrom(i);
-    } where i in 1..n;
+        StuckIn(i, m) := p(i, m1), NoWayOutFrom(i, m);
+    } where i in 1..n, m in 1..`k+1`, `m % 2 != 0`, m1 = `m-1`;
 
     all blocks in StuckIn operated with AND;
 
-    define block W := all blocks in StuckIn;
+    define blocks grouped in S {
+        S(m) := StuckIn(i, m);
+    } where m in 1..`k+1`, `m % 2 != 0`, i in 1..n;
 
-    block W operated with OR;
+    all blocks in S operated with OR;
 
-    /* Final blocks */
-    /* -----------------------------------------------------------------------*/
 
-    define block Win := W, C, Vp, Op, Oq;
-    block Win operated with AND;
-    define block VqToW := -Vq, Win;
-    block VqToW operated with OR;
+    /* === 3. Final blocks ================================================== */
 
-    define block F := VqToW;
+
+    define block Vp(0) := p(s, 0), Up(0);
+    block Vp(0) operated with AND;
+
+    define blocks grouped in Vp {
+        Vp(m) := Up(m), Op(m), Cp(m);
+    } where m in 2..`k`, `m % 2 == 0`;
+    all blocks in Vp operated with AND;
+
+    define blocks grouped in Vq {
+        Vq(m) := Uq(m), Oq(m), Cq(m);
+    } where m in 1..`k-1`, `m % 2 != 0`;
+    all blocks in Vq operated with AND;
+
+    define blocks grouped in VpUpTo {
+        VpUpTo(m) := Vp(m1);
+    } where m in 1..`k-1`, `m % 2 != 0`, m1 in 0..`m - 1`, `m1 % 2 == 0`;
+
+    define blocks grouped in VqUpTo {
+        VqUpTo(m) := Vq(m1);
+    } where m in 2..`k-1`, `m % 2 != 0`, m1 in 0..`m - 2`, `m1 % 2 != 0`;
+                                                 
+    all blocks in VpUpTo operated with AND;
+    all blocks in VqUpTo operated with AND;
+
+    define block VUpTo(1) := VpUpTo(1);
+
+    define blocks grouped in VUpTo {
+        VUpTo(m) := VpUpTo(m), VqUpTo(m);
+    } where m in 3..`k-1`, `m % 2 != 0`;
+
+    all blocks in VUpTo operated with AND;
+
+    define blocks grouped in ValidNow {
+        ValidNow(m):= Vq(m), VUpTo(m);
+    } where m in 1..`k-1`, `m % 2 != 0`;
+
+    define blocks {
+        ValidAndStuck := Vp(k), S(k1);
+    } where k1 = `k + 1`;
+    block ValidAndStuck operated with AND;
+
+    define blocks grouped in Mk1 {
+        M(k1) := -ValidNow(k1), ValidAndStuck;
+    } where k1 = `k-1`;
+    all blocks in Mk1 operated with OR;
+
+    define blocks grouped in M {
+        M(m) := -ValidNow(m), Vp(m1);
+    } where m in 1..`k-3`, `m % 2 != 0`, m1 = `m + 1`;
+    all blocks in M operated with OR;
+
+    define blocks grouped in StuckOrMove {
+        StuckOrMove(m) := s(m), M(m);
+    } where m in 1..`k-1`, `m % 2 != 0`;
+    all blocks in StuckOrMove operated with OR;
+
+
+    define blocks grouped in NowOrBefore {
+        NowOrBefore(m) := s(m0), S(m);
+    } where m in 3..`k+1`, `m % 2 != 0`, m0 = `m - 2`;
+    all blocks in NowOrBefore operated with OR;
+
+    define blocks grouped in LeftS {
+        LeftS(m) := -s(m), NowOrBefore(m);
+    } where m in 3..`k+1`, `m % 2 != 0`, m0 = `m - 1`;
+    define blocks grouped in RightS {
+        RightS(m) := NowOrBefore(m), -s(m);
+    } where m in 3..`k+1`, `m % 2 != 0`, m0 = `m - 1`;
+
+    all blocks in LeftS operated with OR;
+    all blocks in RightS operated with OR;
+
+    define block S1ImpL := -s(1), S(1);
+    define block S1ImpR := S(1), -s(1);
+    block S1ImpL operated with OR;
+    block S1ImpR operated with OR;
+
+    define block S1Imp := S1ImpL, S1ImpR;
+    block S1Imp operated with AND;
+
+    define blocks {
+        SImp := LeftS(m), RightS(m), S1Imp;
+    } where m in 3..`k+1`, `m % 2 != 0`;
+    block SImp operated with AND;
+
+    define blocks {
+        SK1 := s(k1);
+    } where k1 = `k + 1`;
+
+    define blocks {
+        F := Vp(0), StuckOrMove(m), SK1, SImp;
+    } where m in 1..`k-1`, `m % 2 != 0`;
     block F operated with AND;
 
-    /* Define the output block */
-    /* -----------------------------------------------------------------------*/
+
+    /* --- Define the output block --- */
     define block G := Q, F;
 
 }
