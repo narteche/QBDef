@@ -11,18 +11,18 @@ The tool requires:
 
 1. Python parsing library [lark](https://github.com/lark-parser/lark): `$ pip install lark-parser`
 2. Python 2 (the tool runs on Python 3 but Python 2 is needed to run some third-party code; make sure you have it installed, as, for instance, Ubuntu 20.04 no longer has it by default).
-3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDeF/blob/master/qcir-to-qdimacs.py). The orignal source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files.
+3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDef/blob/master/qcir-to-qdimacs.py). The orignal source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files.
 
-You can run the tool by executing the [`QBDef.pyc`](https://github.com/alephnoell/QBDeF/blob/master/QBDeF.py) script on a terminal:
+You can run the tool by executing the [`QBDef.pyc`](https://github.com/alephnoell/QBDef/blob/master/QBDef.py) script on a terminal:
 
 ```
-python QBDeF.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
+python3 QBDef.pyc input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
 ```
 
 For example, if `my_def.txt` is your QBF family definition and `values.txt` is the file with the values for the parameters,
 
 ```
-python QBDeF.pyc my_def.txt values.txt -QCIR
+python3 QBDef.pyc my_def.txt values.txt -QCIR
 ```
 
 outputs the QCIR format instance on terminal. 
@@ -37,11 +37,11 @@ The possible options are:
 
 # The formal language
 
-Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters. The `/examples` folder contains examples of formula families written in the formal language. A cheatsheet is also provided in the same forlder.
+Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters. The `/examples` folder contains examples of formula families written in the formal language.
 
 # Contents of the repository
 
 * `QBDef.pyc`: Python script to run the tool.
-* `/examples`: definitions in the formal language; contains a brief introductory cheatsheet to the formal language.
+* `qcir-to-qdimacs.py `: third-party Python script for QCIR-to-QDIMACS conversion.
+* `/examples`: example definitions in the formal language.
 * `/src`: source code and development files.
-
