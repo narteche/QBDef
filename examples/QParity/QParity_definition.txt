@@ -2,7 +2,7 @@ name: QParity;
 format: circuit-prenex;
 
 parameters: {
-    n : int, `n >= 1`;
+    n : int, `n >= 2`;
 }
 
 variables: {
@@ -28,24 +28,19 @@ blocks: {
     /* === Blocks for matrix === */
 
     define block T(2) := x(1), x(2);
+
     define blocks grouped in T {
         T(i) := T(s), x(i);
     } where i in 3..n, s = `i-1`;
 
-    define blocks grouped in Ro {
-        Ro1 := z, T(n);
-        Ro2 := -z, -T(n);
-    };
-
-    define block F := Ro1, Ro2;
+    define block Rho := T(n), z;
 
     block T(2) operated with XOR;
     all blocks in T operated with XOR;
-    all blocks in Ro operated with OR;
-    block F operated with AND;
+    block Rho operated with XOR;
 
     /* define the output block */
-    define block Phi := Q, F;
+    define block Phi := Q, Rho;
 
 }
 
