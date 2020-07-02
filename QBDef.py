@@ -89,7 +89,7 @@ grammar = '''
                 BLOCK_NAME : /[A-Z]([_?a-zA-Z0-9])*/
                 NEGATION : "-"
                 QUANTIFIER : "E" | "A"
-                OPERATOR: "AND" | "OR" | "XOR"
+                OPERATOR: "AND" | "OR" | "XOR" | "=>" | "<=>"
                 COMMENT: /\/\*((\*[^\/])|[^*])*\*\//
 
 
@@ -119,6 +119,8 @@ class Operator(Enum):
     OR = 'or'
     AND = 'and'
     XOR = 'xor'
+    IMP = 'imp'
+    DIMP = 'dimp'
     
 class Format(Enum):
     circuit_PRENEX = 'circuit-prenex'
@@ -169,6 +171,10 @@ class Block:
             self.blockAtt = Operator.OR
         elif bAtt == "AND":
             self.blockAtt = Operator.AND
+        elif bAtt == "=>":
+            self.blockAtt = Operator.IMP
+        elif bAtt == "<=>":
+            self.blockAtt = Operator.DIMP
         else:
             print("ATTRIBUTE ERROR: attribute {} is not a valid input.".format(bAtt))
             exit()
@@ -512,12 +518,55 @@ class QBF:
                 processed.add(g.get_name())
             if g.get_attribute_str() == "None":
                 gate_str = str(g.get_id()) + " = " + "or" + "("
+
+            elif g.get_attribute_str() == "imp":
+                gate_str = str(g.get_id()) + " = " + "or" + "("
+                imp1 = ""
+                imp2 = ""
+                i = 0
+                for sub_gate in g.get_body():
+                    if i == 0:
+                        imp1 = sub_gate
+                        i = 1
+                    else:
+                        imp2 = sub_gate
+                    #gate_str += str(sub_gate) + ", "
+                    if abs(sub_gate) in self.block_contents:
+                        gates.append(self.block_contents[abs(sub_gate)])
+                gate_str += str(-1 * int(imp1)) + ", " + str(imp2) + ", "
+
+            elif g.get_attribute_str() == "dimp":
+                aux2 = self.idCounter + 1
+                self.idCounter += 1
+                aux1 = self.idCounter + 1
+                self.idCounter += 1
+                imp1 = ""
+                imp2 = ""
+                i = 0
+                for sub_gate in g.get_body():
+                    if i == 0:
+                        imp1 = sub_gate
+                        i = 1
+                    else:
+                        imp2 = sub_gate
+                    #gate_str += str(sub_gate) + ", "
+                    if abs(sub_gate) in self.block_contents:
+                        gates.append(self.block_contents[abs(sub_gate)])
+
+                gate_str = str(g.get_id()) + " = " + "and" + "(" + str(aux1) + ", " + str(aux2) + ")\n" 
+                gates_str_list.append(gate_str)
+                left =  str(aux1) + " = or(" + str(-1 * int(imp1)) + ", " + str(imp2) + ")\n"
+                gates_str_list.append(left)
+                gate_str = str(aux2) + " = or(" + str(-1 * int(imp2)) + ", " + str(imp1) + ")\n"
+
+
             else:
                 gate_str = str(g.get_id()) + " = " + g.get_attribute_str() + "("
-            for sub_gate in g.get_body():
-                gate_str += str(sub_gate) + ", "
-                if abs(sub_gate) in self.block_contents:
-                    gates.append(self.block_contents[abs(sub_gate)])
+                for sub_gate in g.get_body():
+                    gate_str += str(sub_gate) + ", "
+                    if abs(sub_gate) in self.block_contents:
+                        gates.append(self.block_contents[abs(sub_gate)])
+
             if g.get_body():
                 gate_str = gate_str[:-2] + ")\n"
             else:
