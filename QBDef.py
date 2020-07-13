@@ -228,6 +228,9 @@ class QBF:
         self.QCIR_str = None
         self.QDIMACS_str = None
         self.non_prenex_QCIR_str = None
+
+        self.QCIR_blackboard = ""
+        self.QCIR_bb_contents = set()
     
     # ======================== Name ========================
     def get_name(self):
@@ -468,13 +471,78 @@ class QBF:
         # add output gate
         in_qcir_str += "output({})\n".format(final_contents[1])
 
+        #### FIX AREA ####
+
+        # == ORIGINAL CODE ==
         # add gates
-        gates = [self.block_contents[final_contents[1]]]
-        in_qcir_str += self.get_gates_str_list(gates)
+        #for b in self.block_contents:
+        #   print(self.block_to_string_gates(self.block_contents[b]))
+
+        self.write_on_blackboard(self.block_contents[final_contents[1]])
+        in_qcir_str += self.QCIR_blackboard
+
+        # ================================================
+
+        ####  END FIX  ####
 
         self.QCIR_str = in_qcir_str
         return in_qcir_str
 
+    def block_to_string_gates(self, block):
+        operator = block.get_attribute_str()
+        output = str(block.get_id())
+        body = block.get_body()
+
+        if operator == "imp":
+            gate_str = output + " = " + "or" + "("
+            imp1 = ""
+            imp2 = ""
+            i = 0
+            for operand in body:
+                if i == 0:
+                    imp1 = operand
+                    i = 1
+                else:
+                    imp2 = operand
+            gate_str += str(-1 * int(imp1)) + ", " + str(imp2) + ")"
+            return [gate_str]
+        elif operator == "dimp":
+            aux1 = self.idCounter + 1
+            self.idCounter += 1
+            aux2 = self.idCounter + 1
+            self.idCounter += 1
+            imp1 = ""
+            imp2 = ""
+            i = 0
+            for sub_gate in body:
+                if i == 0:
+                    imp1 = sub_gate
+                    i = 1
+                else:
+                    imp2 = sub_gate 
+            gate_str = str(g.get_id()) + " = " + "and" + "(" + str(aux1) + ", " + str(aux2) + ")\n" 
+            left =  str(aux1) + " = or(" + str(-1 * int(imp1)) + ", " + str(imp2) + ")\n"
+            right = str(aux2) + " = or(" + str(-1 * int(imp2)) + ", " + str(imp1) + ")\n"
+            return [left, right, gate_str]
+
+        else:
+            body = str(body)
+            return [output + " = " + operator + "(" + body[1:-1] + ")"]
+
+    def write_on_blackboard(self, block):
+        # first make sure the operands of the gate are in the blackboard
+        for operand in block.get_body():
+            operand = abs(operand)
+            if (operand in self.block_contents) and not (operand in self.QCIR_bb_contents):
+                self.write_on_blackboard(self.block_contents[operand])
+        # mark this gate as processed
+        self.QCIR_bb_contents.add(block.get_id())
+        # write the gate on the blackboard
+        for str_gate in self.block_to_string_gates(block):
+            self.QCIR_blackboard += str_gate + "\n"
+
+
+    # Deprecated, don't use.
     def process_quant_block(self, block):
         if block.has_attribute():
             q_block_str = "{}(".format(block.get_attribute_str())
@@ -488,6 +556,7 @@ class QBF:
                 several_str += self.process_quant_block(self.block_contents[brick])
             return several_str
 
+    # Deprecated, don't use.
     def to_str_list(self, bricks):
         str_list = ""
         for brick in bricks:
@@ -506,6 +575,7 @@ class QBF:
                     str_list += str(sign*lit_int) + ", "
         return str_list
 
+    # Deprecated, don't use.
     def get_gates_str_list(self, gates):
         gates_str_list = []
         gate_str = ""
