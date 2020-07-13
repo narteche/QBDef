@@ -16,7 +16,7 @@ The tool requires:
 You can run the tool by executing the [`QBDef.py`](https://github.com/alephnoell/QBDef/blob/master/QBDef.py) script on a terminal:
 
 ```
-python3 QBDef.py input_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
+python3 QBDef.py definition_file values_file [-internal] [-verbose] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]
 ```
 
 For example, if `my_def.txt` is your QBF family definition and `values.txt` is the file with the values for the parameters,
