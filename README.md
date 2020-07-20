@@ -1,17 +1,17 @@
 # QBDef: A QBF Family Definition Processor and Generator
-A tool to write QBF family defintions and obtain instances in QCIR or QDIMACS.
+A tool to write QBF family definitions and obtain instances in QCIR or QDIMACS.
 
 # Description
-QBDef is a computer-tool written in Python designed to make the generation of QBF instances easier. The tool gets as input the formal defintion of a formula family in terms of some parameters and returns instances of it for specific values in the QCIR or QDIMACS formats.
+QBDef is a computer-tool written in Python designed to make the generation of QBF instances easier. The tool gets as input the formal definition of a formula family in terms of some parameters and returns instances of it for specific values in the QCIR or QDIMACS formats.
 
 # Requirements
-The tool is written in Python, so it should work on any operating system. However, if you are using Windows, we recommend to run the tool using the Windows Subsystem for Linux (WSL).
+The tool is written in Python, so it should work on any operating system. However, if you are using Windows, we recommend running the tool using the Windows Subsystem for Linux (WSL).
 
 The tool requires:
 
 1. Python parsing library [lark](https://github.com/lark-parser/lark): `pip install lark-parser`
 2. Python 2 (the tool runs on Python 3 but Python 2 is needed to run some third-party code; make sure you have it installed, as, for instance, Ubuntu 20.04 no longer has it by default). Check that you have both with `python2 --version` and `python3 --version`.
-3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDef/blob/master/qcir-to-qdimacs.py). The orignal source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files. This is already in the directory if you clone the repository.
+3. William Klieber's `qcir-to-qdimacs.py` conversion tool. A copy of his script is available [in this same repo](https://github.com/alephnoell/QBDef/blob/master/qcir-to-qdimacs.py). The original source is [this](https://www.wklieber.com/ghostq/qcir-converter.html). The script must be in the same directory as the tool to be able to output QDIMACS files. This is already in the directory if you clone the repository.
 
 # How to run QBDef
 After cloning the repository, you can run the tool by executing the [`QBDef.py`](https://github.com/alephnoell/QBDef/blob/master/QBDef.py) script on a terminal:
@@ -26,7 +26,7 @@ For example, if `my_def.txt` is your QBF family definition and `values.txt` is t
 python3 QBDef.py my_def.txt values.txt -QCIR
 ```
 
-outputs the QCIR format instance on terminal. 
+outputs the QCIR format instance on a terminal. 
 
 The possible options are:
 
@@ -38,7 +38,7 @@ The possible options are:
 
 # The formal language
 
-Formula family defintions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters. [The cheat sheet](https://github.com/alephnoell/QBDef/blob/master/QBDef%20Cheatsheet.pdf) contains information on the syntax an format of this language. The [`/examples`](https://github.com/alephnoell/QBDef/tree/master/examples) folder contains examples of formula families written in the formal language. An interesting and simple example is that of [the QParity formulas](https://github.com/alephnoell/QBDef/tree/master/examples/QParity). Below, a more basic example is discussed.
+Formula family definitions are written in a formal language parsed by the generator, which then outputs an actual instance in a valid format for some values of the family's parameters. [The cheat sheet](https://github.com/alephnoell/QBDef/blob/master/QBDef%20Cheatsheet.pdf) contains information on the syntax and format of this language. The [`/examples`](https://github.com/alephnoell/QBDef/tree/master/examples) folder contains examples of formula families written in the formal language. An interesting and simple example is that of [the QParity formulas](https://github.com/alephnoell/QBDef/tree/master/examples/QParity). Below, a more basic example is discussed.
 
 ## A simple example
 Let _n_ ∊ ℕ*. We will consider the formula family containing QBF over variables _x₁_, ..., _xₙ_, _y₁_, ..., _yₙ_ of the form
@@ -151,7 +151,7 @@ a 4 0
 ```
 
 # More documentation
-This work belongs to my Bacherlor's thesis, _A Formal Language and Tool for QBF Family Definitions_, written in 2020 at the KU Leuven. [The thesis text](https://github.com/alephnoell/QBDef/blob/master/documents/Thesis%20Text%20-%20A%20Formal%20Language%20and%20Tool%20for%20QBF%20Family%20Definitions.pdf) and the slides used for its defence can be found in the [`/documents`](https://github.com/alephnoell/QBDef/tree/master/documents) folder. These contain an in depth dicussion of the tool and its implementation, as well as many other examples.
+This work belongs to my Bachelor's thesis, _A Formal Language and Tool for QBF Family Definitions_, written in 2020 at the KU Leuven. [The thesis text](https://github.com/alephnoell/QBDef/blob/master/documents/Thesis%20Text%20-%20A%20Formal%20Language%20and%20Tool%20for%20QBF%20Family%20Definitions.pdf) and the slides used for its defence can be found in the [`/documents`](https://github.com/alephnoell/QBDef/tree/master/documents) folder. These contain an in-depth discussion of the tool and its implementation, as well as many other examples.
 
 Besides, this work was presented at the QBF Workshop 2020. The extended abstract is also available in the [`/documents`](https://github.com/alephnoell/QBDef/tree/master/documents) folder, alongside the video recording of the talk and the slides used for it.
 
