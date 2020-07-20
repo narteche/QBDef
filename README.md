@@ -57,7 +57,7 @@ In QBDef's formal language, Φ(_n_) is written as follows:
 
 ```
 name: The simple parameterised example;
-format: CNF;                             /* possible formats are: CNF, circuit-prenex, circuit-nonprenex */
+format: CNF;   /* possible formats are: CNF, circuit-prenex, circuit-nonprenex */
 
 parameters: {
     n : int, `n >= 1`;
