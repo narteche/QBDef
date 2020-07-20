@@ -1,3 +1,6 @@
+
+/* This example is no longer supported by the current version of QBDef */
+
 name: Chen Type 2;
 format: circuit-prenex;
 

@@ -1,12 +1,11 @@
 #==============================================================================
 #==================================== QBDeF ===================================
 #==================== Noel Arteche (noel.arteche@gmail.com) ===================
-#=============================== __ May 2020 __ ===============================
+#=============================== __ July 2020 __ ==============================
 #==============================================================================
 
 from sys import argv
 from lark import Lark, Transformer, v_args
-#from representation import QBF
 from itertools import chain
 from time import time
 
@@ -22,6 +21,10 @@ try:
 except NameError:
     pass
 
+
+#==============================================================================
+#=============================== Grammar (Lark) ===============================
+#==============================================================================
 
 grammar = '''
                 start: value* formula_family? -> return_formula
@@ -80,18 +83,20 @@ grammar = '''
 
                 output_block: "output block:" BLOCK_NAME ("(" indices ")")? ";" -> add_final_block
 
-                NAME : /(?!all blocks in)[a-z]([_?a-zA-Z0-9])*/
+                NAME : /(?!all blocks in)[a-z\u0370-\u03ff\U0001F1E0-\U0001F1FF\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251][^,:;(){}\s]*/
+                //NAME : /[a-z]([_?a-zA-Z0-9])*/ old name regex
                 FAMILY_NAME : /[^;]+/ // old version: /[a-zA-Z]([ ?_?a-zA-Z0-9])*(?=;)/
                 FORMAT : "CNF" | "circuit-prenex" | "circuit-nonprenex"
                 PARAM_TYPE : "int" | "str" | "float" | "list" | "bool" | "other" // the names used by Python
                 ?expression : /[0-9]+/ | "`" /[^`]+/ "`" //| /[^`,;\]]+/
-                INDEX : /[a-z][_?a-zA-Z0-9]*/ | /[0-9]+/
-                BLOCK_NAME : /[A-Z]([_?a-zA-Z0-9])*/
-                NEGATION : "-"
-                QUANTIFIER : "E" | "A"
-                OPERATOR: "AND" | "OR" | "XOR" | "=>" | "<=>"
+                INDEX : /[a-z][^,:;(){}\s]*/ | /[0-9]+/
+                BLOCK_NAME : /[A-Z\u0370-\u03ff\U0001F1E0-\U0001F1FF\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0\U000024C2-\U0001F251][^,:;(){}\s]*/
+                //BLOCK_NAME : /[A-Z]([_?a-zA-Z0-9])*/ old block_name regex
+                NEGATION : "-" | "¬"
+                QUANTIFIER : "E" | "A" | "∃" | "∀"
+                OPERATOR: "AND" | "OR" | "XOR" | "=>" | "<=>" | "⊕" | "∨" | "∧" | "→" | "↔" | "⇔" | "⇒" | "ITE" | "if-then-else" | "⤙"
                 COMMENT: /\/\*((\*[^\/])|[^*])*\*\//
-
+                RESERVED: "define" | "block" | "blocks" | "grouped" | "in" | "quantified" | "operated" | "with" | "output" | "all" | "where" | "name" | "format" | "parameters" | "variables"
 
 
                 %import common.NUMBER
@@ -103,9 +108,11 @@ grammar = '''
 '''
 
 #==============================================================================
-#=============================== Representation ===============================
+#=============================== REPRESENTATION ===============================
 #==============================================================================
 
+# We have classes representing: quantifiers, operators, formats, parameters,
+# blocks and QBF.
 
 #==============================================================================
 #============ Operator, quantifier and format representations =================
@@ -121,6 +128,7 @@ class Operator(Enum):
     XOR = 'xor'
     IMP = 'imp'
     DIMP = 'dimp'
+    ITE  = 'ite'
     
 class Format(Enum):
     circuit_PRENEX = 'circuit-prenex'
@@ -161,20 +169,22 @@ class Block:
             print("ATTRIBUTE ERROR: block {} already has an attribute ({}) and thus it cannot be assigned another one ({}).".format(self.blockName, self.blockAtt.value, bAtt))
             exit()
 
-        if bAtt == "E":
+        if bAtt == "E" or bAtt == "∃":
             self.blockAtt = Quantifier.EXISTS
-        elif bAtt == "A":
+        elif bAtt == "A" or bAtt == "∀":
             self.blockAtt = Quantifier.FORALL
-        elif bAtt == "XOR":
+        elif bAtt == "XOR" or bAtt == "⊕":
             self.blockAtt = Operator.XOR
-        elif bAtt == "OR":
+        elif bAtt == "OR" or bAtt == "∨":
             self.blockAtt = Operator.OR
-        elif bAtt == "AND":
+        elif bAtt == "AND" or bAtt == "∧":
             self.blockAtt = Operator.AND
-        elif bAtt == "=>":
+        elif bAtt == "=>" or bAtt == "→" or bAtt == "⇒":
             self.blockAtt = Operator.IMP
-        elif bAtt == "<=>":
+        elif bAtt == "<=>" or bAtt == "↔" or bAtt == "⇔":
             self.blockAtt = Operator.DIMP
+        elif bAtt == "ITE" or bAtt == "if-then-else" or bAtt == "⤙":
+            self.blockAtt = Operator.ITE
         else:
             print("ATTRIBUTE ERROR: attribute {} is not a valid input.".format(bAtt))
             exit()
@@ -471,19 +481,9 @@ class QBF:
         # add output gate
         in_qcir_str += "output({})\n".format(final_contents[1])
 
-        #### FIX AREA ####
-
-        # == ORIGINAL CODE ==
-        # add gates
-        #for b in self.block_contents:
-        #   print(self.block_to_string_gates(self.block_contents[b]))
-
+        # write gates
         self.write_on_blackboard(self.block_contents[final_contents[1]])
         in_qcir_str += self.QCIR_blackboard
-
-        # ================================================
-
-        ####  END FIX  ####
 
         self.QCIR_str = in_qcir_str
         return in_qcir_str
@@ -497,13 +497,14 @@ class QBF:
             gate_str = output + " = " + "or" + "("
             imp1 = ""
             imp2 = ""
-            i = 0
-            for operand in body:
-                if i == 0:
-                    imp1 = operand
-                    i = 1
-                else:
-                    imp2 = operand
+
+            if len(body) != 2:
+                print("OPERATOR ERROR: Cannot use operator {} on block {} because the number of bricks is not two.".format("→ (implication)", block.get_name()))
+                exit()
+
+            imp1 = body[0]
+            imp2 = body[1]
+
             gate_str += str(-1 * int(imp1)) + ", " + str(imp2) + ")"
             return [gate_str]
         elif operator == "dimp":
@@ -513,19 +514,33 @@ class QBF:
             self.idCounter += 1
             imp1 = ""
             imp2 = ""
-            i = 0
-            for sub_gate in body:
-                if i == 0:
-                    imp1 = sub_gate
-                    i = 1
-                else:
-                    imp2 = sub_gate 
-            gate_str = str(g.get_id()) + " = " + "and" + "(" + str(aux1) + ", " + str(aux2) + ")\n" 
-            left =  str(aux1) + " = or(" + str(-1 * int(imp1)) + ", " + str(imp2) + ")\n"
-            right = str(aux2) + " = or(" + str(-1 * int(imp2)) + ", " + str(imp1) + ")\n"
+
+            if len(body) != 2:
+                print("OPERATOR ERROR: Cannot use operator {} on block {} because the number of bricks is not two.".format("↔ (double implication)", block.get_name()))
+                exit()
+
+            imp1 = body[0]
+            imp2 = body[1]
+
+            gate_str = output + " = " + "and" + "(" + str(aux1) + ", " + str(aux2) + ")" 
+            left =  str(aux1) + " = or(" + str(-1 * int(imp1)) + ", " + str(imp2) + ")"
+            right = str(aux2) + " = or(" + str(-1 * int(imp2)) + ", " + str(imp1) + ")"
             return [left, right, gate_str]
 
         else:
+            if operator == "None":
+                if len(body) >= 2:
+                    print("OPERATOR ERROR: Block {} has been assigned no valid operator.".format(block.get_name()))
+                    exit()
+                else:
+                    operator = "or"
+            elif operator == "xor" and len(body) != 2:
+                print("OPERATOR ERROR: Cannot use operator {} on block {} because the number of bricks is not two.".format("⊕ (XOR)", block.get_name()))
+                exit()
+            elif operator == "ite" and len(body) != 3:
+                print("OPERATOR ERROR: Cannot use operator {} on block {} because the number of bricks is not three.".format("⊕ (XOR)", block.get_name()))
+                exit()
+
             body = str(body)
             return [output + " = " + operator + "(" + body[1:-1] + ")"]
 
@@ -542,7 +557,7 @@ class QBF:
             self.QCIR_blackboard += str_gate + "\n"
 
 
-    # Deprecated, don't use.
+    # Deprecated, don't use!
     def process_quant_block(self, block):
         if block.has_attribute():
             q_block_str = "{}(".format(block.get_attribute_str())
@@ -556,7 +571,7 @@ class QBF:
                 several_str += self.process_quant_block(self.block_contents[brick])
             return several_str
 
-    # Deprecated, don't use.
+    # Deprecated, don't use!
     def to_str_list(self, bricks):
         str_list = ""
         for brick in bricks:
@@ -575,7 +590,7 @@ class QBF:
                     str_list += str(sign*lit_int) + ", "
         return str_list
 
-    # Deprecated, don't use.
+    # Deprecated, don't use!
     def get_gates_str_list(self, gates):
         gates_str_list = []
         gate_str = ""
@@ -1109,7 +1124,7 @@ class TraverseTree(Transformer):
                 brick_to_send = ["all blocks in", str(components[1])]                
             else:    
                 sign = ''
-                if components[0] == '-':
+                if components[0] == '-' or components[0] == '¬':
                     sign = '-'
                     components = components[1:]
                 
@@ -1130,6 +1145,8 @@ class TraverseTree(Transformer):
     """ Hanldes groupings """   
     def handle_grouping(self, grp):
         if grp:
+            if verbose:
+                print("GROUPING: adding grouping {}.".format(str(grp.children[0])))
             return str(grp.children[0])
         else:
             return grp
@@ -1155,8 +1172,6 @@ class TraverseTree(Transformer):
 
 def generate(input_file, values_file, internal, output_formats):
     # Generate the parsing function from the grammar and the traversal class
-    #grammar_file = open("grammar.lark", "r")
-    #grammar = grammar_file.read()
     parser_obj = Lark(grammar, parser='lalr', transformer=TraverseTree())
     parse = parser_obj.parse
 
@@ -1174,6 +1189,7 @@ def generate(input_file, values_file, internal, output_formats):
         formula = parse(v)
     except Exception as e:
         s = str(e)
+        # uncomment the following line to see full parsing error messages
         #print(s)
         start = s.find("at line")
         finish = s.find("Expected one")
@@ -1195,7 +1211,7 @@ def generate(input_file, values_file, internal, output_formats):
         formula = parse(s)
     except Exception as e:
         s = str(e)
-        #print(s)
+        print(s)
         start = s.find("at line")
         finish = s.find("Expected one")
         print("PARSING ERROR: invalid syntax when parsing the definition {}".format(s[start:finish-1]))
@@ -1267,7 +1283,7 @@ def print_help():
     print("")
     print("Input should be of the form:")
     print("")
-    print("python main.py input_file [-internal] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]")
+    print("python main.py definition_file values_file [-internal] [-QDIMACS {file.qdimacs | [-stdIO]}] [-QCIR {file.QCIR | [-stdIO]}] [-non-prenex-QCIR {file.QCIR | [-stdIO]}]")
     print("")
 
 def run_generator():
@@ -1288,7 +1304,3 @@ def run_generator():
     generate(input_file, values_file,  internal, output_formats)
 
 run_generator()
-
-
-#if __name__ == '__main__':
-#    main()

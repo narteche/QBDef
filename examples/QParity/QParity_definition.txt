@@ -22,8 +22,8 @@ blocks: {
 
     define block Q := X, Z;
 
-    block X quantified with E;
-    block Z quantified with A;
+    block X quantified with ∃;
+    block Z quantified with ∀;
 
     /* === Blocks for matrix === */
 
@@ -33,15 +33,15 @@ blocks: {
         T(i) := T(s), x(i);
     } where i in 3..n, s = `i-1`;
 
-    define block Rho := T(n), z;
+    define block ρ := T(n), z;
 
-    block T(2) operated with XOR;
-    all blocks in T operated with XOR;
-    block Rho operated with XOR;
+    block T(2) operated with ⊕;
+    all blocks in T operated with ⊕;
+    block ρ operated with ⊕;
 
     /* define the output block */
-    define block Phi := Q, Rho;
+    define block ϕ := Q, ρ;
 
 }
 
-output block: Phi;
+output block: ϕ;
