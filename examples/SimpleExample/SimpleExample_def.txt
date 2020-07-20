@@ -22,13 +22,11 @@ blocks: {
         QY(i) := y(i);
     } where i in 1..n;
 
-    define blocks {
+    define blocks grouped in QXY {
         QXY(i) := QX(i), QY(i);
     } where i in 1..n;
 
-    define blocks {
-        Q := QXY(i);
-    } where i in 1..n;
+    define block Q := all blocks in QXY;
 
     all blocks in QX quantified with E;
     all blocks in QY quantified with A;
@@ -43,9 +41,7 @@ blocks: {
         XY(i) := x(i), y(i);
     } where i in 1..n;
 
-    define blocks {
-        F := X, XY(i);
-    } where i in 1..n;
+    define block F := X, all blocks in XY;
 
     block X operated with OR;
     all blocks in XY operated with OR;

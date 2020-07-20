@@ -1211,7 +1211,8 @@ def generate(input_file, values_file, internal, output_formats):
         formula = parse(s)
     except Exception as e:
         s = str(e)
-        print(s)
+        # uncomment the following line to see full parsing error messages
+        #print(s)
         start = s.find("at line")
         finish = s.find("Expected one")
         print("PARSING ERROR: invalid syntax when parsing the definition {}".format(s[start:finish-1]))
